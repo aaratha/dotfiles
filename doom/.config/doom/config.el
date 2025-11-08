@@ -54,59 +54,10 @@
 
 (set-frame-parameter nil 'alpha-background 0.6) ; For current frame
 
-(setopt initial-buffer-choice #'enlight)
-
-(require 'grid)
-
-(defvar enlight-lipsum "Test
-
-Test")
-
-(defface enlight-yellow-bold
-  '((t (:foreground "#cabf00" :bold t)))
-  "Yellow bold face")
-
-
-(defvar enlight-calendar
-  (progn
-    (calendar)
-    (prog1 (with-current-buffer (buffer-name (current-buffer))
-	     (buffer-string))
-      (calendar-exit))))
-
-;; (use-package enlight
-;;  :custom
-;;  (enlight-content
-;;   (concat
-;;    (grid-get-row
-;;     (list
-;;      (grid-get-box
-;;       (concat
-;;	(grid-get-box
-;;	 `( :content
-;;	    ,(concat
-;;	      (grid-get-box `( :content ,(propertize "Doom Emacs" 'face 'bold)
-;;			       :width 80 :align center))
-;;	      )
-;;	    :width 80))
-;;	enlight-calendar "\n"
-;;	(grid-get-row
-;;	 `(,(concat
-;;	     (propertize " " 'face 'bold)
-;;	     "\n"
-;;	     (enlight-menu
-;;	      '(("Org Mode"
-;;		 ("Org-Agenda (current day)" (org-agenda nil "a") "a"))
-;;		("Downloads"
-;;		 ("Downloads folder" (dired "~/Downloads") "a"))
-;;		("Other"
-;;		 ("Projects" project-switch-project "p")))))
-;;	   )))))))))
-
 ;; Set the initial window width and height (in columns and rows)
 (setq initial-frame-alist
       '((width . 100)  ; Width in characters
-        (height . 50))) ; Height in lines
+        (height . 40))) ; Height in lines
 
 (setq doom-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.0 :height 1)
       ;;doom-variable-pitch-font (font-spec :family "Averia Serif Libre" :size 14.0)
@@ -130,7 +81,6 @@ Test")
 (setq org-appear-mode 1)
 
 (setq org-hide-emphasis-markers t)
-
 
 
 ;; Automatically enable olivetti-mode when org-agenda starts
@@ -305,44 +255,6 @@ Test")
 ;; (setq interprogram-cut-function 'my/copy-to-clipboard)
 ;; (setq interprogram-paste-function 'my/paste-from-clipboard)
 
-;; (package! lsp-tailwindcss :recipe (:host github :repo "merrickluo/lsp-tailwindcss"))
-
-(use-package! lsp-mode
-  :init
-  ;; Exclude Vue language server for tsx and ts files
-  (setq lsp-disabled-clients '(vue-semantic-server))
-  :hook
-  ((typescript-mode . lsp-deferred)
-   (web-mode . lsp-deferred))
-  :config
-  ;; Configure TypeScript language server
-  (lsp-register-client
-   (make-lsp-client :new-connection (lsp-stdio-connection
-                                     (lambda () '("typescript-language-server" "--stdio")))
-                    :major-modes '(typescript-mode web-mode)
-                    :priority 1
-                    :server-id 'typescript-ls)))
-
-;; Ensure .tsx and .ts open in appropriate modes
-(after! web-mode
-  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-mode)))
-
-(use-package! vue-mode
-  :mode "\\.vue\\'"
-  :hook (vue-mode . prettier-js-mode)
-  :config
-  (add-hook 'vue-mode-hook #'lsp)
-  (setq prettier-js-args '("--parser vue")))
-
-;; Additional optional configurations for LSP formatting
-(use-package! lsp-mode
-  :custom
-  (lsp-vetur-format-default-formatter-css "none")
-  (lsp-vetur-format-default-formatter-html "none")
-  (lsp-vetur-format-default-formatter-js "none")
-  (lsp-vetur-validation-template nil))
-
 ;; Super Collider Configs
 ;; (setq exec-path (append exec-path '("/Applications/SuperCollider.app/Contents/MacOS/")))
 
@@ -355,27 +267,6 @@ Test")
 
 ;; (setq haskell-process-type 'ghci)
 ;; (setq haskell-process-path-ghci "/Users/aaratha/.ghcup/bin/ghci")
-
-;; Odin Configs
-;; (use-package! odin-mode
-;;   :mode ("\\.odin\\'" . odin-mode)
-;;   :config
-;;   ;; Add any additional configuration here
-;;   )
-
-;; (setenv "PATH" (concat (getenv "PATH") ":/Users/aaratha/ols"))
-;; (setq exec-path (append exec-path '("/Users/aaratha/ols")))
-
-;; (use-package! lsp-mode
-;;   :commands (lsp lsp-deferred)
-;;   :hook (odin-mode . lsp) ;; Start lsp when odin-mode is active
-;;   :config
-;;   (add-to-list 'lsp-language-id-configuration '(odin-mode . "odin"))
-;;   (lsp-register-client
-;;    (make-lsp-client
-;;     :new-connection (lsp-stdio-connection "/Users/aaratha/ols/ols")
-;;     :major-modes '(odin-mode)
-;;     :server-id 'odin-ls)))
 
 (setenv "PATH" (concat (getenv "PATH") ":/usr/local/texlive/2024/bin/universal-darwin"))
 (setq exec-path (append exec-path '("/usr/local/texlive/2024/bin/universal-darwin")))
@@ -409,56 +300,6 @@ Test")
 
 (add-hook 'emacs-lisp-mode-hook (lambda () (setq-local copilot-indent-offset 2)))
 
-(setq clang-format-executable "/opt/homebrew/opt/llvm/bin/clang-format")
-
-(setq-hook! 'cpp-mode-hook +format-with "clang-format")
-(setq-hook! 'glsl-mode-hook +format-with "clang-format")
-
-(add-to-list 'auto-mode-alist '("\\.vs\\'" . glsl-mode))
-(add-to-list 'auto-mode-alist '("\\.fs\\'" . glsl-mode))
-
-(after! rustic
-        (setq rustic-lsp-server 'rust-analyzer))
-
-(add-to-list 'exec-path "~/.cargo/bin")
-
-(defun my/setup-dev-environment ()
-  "Set up development environment with three vertical splits, treemacs, and vterm."
-  (interactive)
-  ;; Delete other windows to start fresh
-  (delete-other-windows)
-
-  ;; Create two vertical splits first
-  (split-window-right)
-  (split-window-right)
-
-  ;; Move to the rightmost window
-  (other-window 2)
-
-  ;; Start vterm in the rightmost window
-  (+vterm/here nil)
-
-  ;; Adjust the width of the terminal window
-  (let ((vterm-width 30)) ;; Adjust the desired width here
-    (enlarge-window-horizontally (- vterm-width (window-width))))
-
-  ;; Move to the leftmost window to set up treemacs
-  (other-window -2)
-
-  ;; Open treemacs
-  (treemacs)
-
-  ;; Move to the coding window (middle window)
-  (other-window 1)
-
-  ;; Adjust all window widths
-  (balance-windows-area))
-
-;; Bind the command to a key (optional)
-(map! :leader
-      :desc "Setup dev environment"
-      "d e" #'my/setup-dev-environment)
-
 (require 'telephone-line)
 (set-face-attribute 'telephone-line-accent-active
                     nil
@@ -482,8 +323,6 @@ Test")
 
 (setq ispell-program-name "/opt/homebrew/bin/aspell")
 (flyspell-mode-off)
-
-(setq leetcode-prefer-language "cpp")
 
 ;; fix blurry pdfs on mac
 (setq pdf-view-use-scaling t)
