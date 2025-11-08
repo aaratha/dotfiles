@@ -17,21 +17,14 @@ return {
 
   {
     "catppuccin/nvim",
-    opts = function(_, opts)
-      local module = require("catppuccin.groups.integrations.bufferline")
-      if module then
-        module.get = module.get_theme
-      end
-      return opts
-    end,
-  },
-
-  {
-    "catppuccin/nvim",
+    name = "catppuccin",
     opts = {
       transparent_background = true,
+      integrations = {
+        bufferline = true, -- enables bufferline integration automatically
+      },
       float = {
-        transparent = false, -- enable transparent floating windows
+        transparent = false,
       },
     },
   },
