@@ -95,3 +95,5 @@
 (package! gptel)
 
 (package! catppuccin-theme)
+
+(package! org-superstar)
