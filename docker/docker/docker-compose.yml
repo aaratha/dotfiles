@@ -1,0 +1,150 @@
+services:
+  # ────────────────────────────────
+  # Gluetun NordVPN (for qBittorrent)
+  # ────────────────────────────────
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN       # required for VPN
+    environment:
+      - VPNSP=NORDVPN
+      - USER=1DkBWwqdtj4XbdFBk81fW3ai
+      - PASSWORD=TFzSamk2SSBMewghc1MaQMZ4
+      - TZ=America/New_York
+      - OPENVPN_NETWORK=10.0.0.0/8   # optional, internal network for routed containers
+      - SERVER_REGIONS=United_States # or pick your preferred NordVPN region
+    ports:
+      - "8118:8118"  # optional HTTP proxy
+      - "8388:8388"  # optional SOCKS5 proxy
+      - "8080:8080"
+    volumes:
+      - /home/aaratha/docker/configs/gluetun:/gluetun
+    restart: unless-stopped
+
+
+  # ────────────────────────────────
+  # qBittorrent (routed through VPN)
+  # ────────────────────────────────
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+      - WEBUI_PORT=8080
+    volumes:
+      - /home/aaratha/docker/configs/qbittorrent:/config
+      - /media/movies:/movies
+      - /home/aaratha/downloads:/downloads
+    restart: unless-stopped
+
+
+  # ────────────────────────────────
+  # Radarr (Movies)
+  # ────────────────────────────────
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    ports:
+      - "7878:7878"
+    depends_on:
+      - qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    volumes:
+      - /home/aaratha/docker/configs/radarr:/config
+      - /home/aaratha/downloads:/downloads
+      - /media/movies:/movies
+    restart: unless-stopped
+
+  # ────────────────────────────────
+  # Prowlarr (Indexer management)
+  # ────────────────────────────────
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    ports:
+      - "9696:9696"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    volumes:
+      - /home/aaratha/docker/configs/prowlarr:/config
+    restart: unless-stopped
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+
+
+  # ────────────────────────────────
+  # Jellyfin (Media server)
+  # ────────────────────────────────
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    ports:
+      - "8096:8096"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    volumes:
+      - /home/aaratha/docker/configs/jellyfin:/config
+      - /media/movies:/media/movies
+    restart: unless-stopped
+
+  # ────────────────────────────────
+  # Portainer (Docker management)
+  # ────────────────────────────────
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    ports:
+      - "9000:9000"
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/aaratha/docker/configs/portainer:/data
+    restart: unless-stopped
+
+  # ────────────────────────────────
+  # FlareSolverr 
+  # ────────────────────────────────
+  byparr:
+    # DockerHub mirror flaresolverr/flaresolverr:latest
+    # image: ghcr.io/flaresolverr/flaresolverr:latest
+    image: ghcr.io/thephaseless/byparr:main
+    # container_name: flaresolverr
+    container_name: byparr
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=America/New_York
+    ports:
+      - "${PORT:-8191}:8191"
+    restart: unless-stopped 
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+
+  # byparr:
+  #   image: ghcr.io/thephaseless/byparr:latest
+  #   container_name: byparr
+  #   ports:
+  #     - "8191:8191"
+  #   environment:
+  #     - LOG_LEVEL=info
+  #     - TZ=America/New_York
+  #     # optionally configure browser/proxy use:
+  #     - USE_HEADLESS=true
+  #     - USE_XVFB=true
+  #     #- PROXY=http://username:password@proxyhost:port
+  #   restart: unless-stopped
+
