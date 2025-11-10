@@ -117,12 +117,12 @@ services:
   # ────────────────────────────────
   # FlareSolverr 
   # ────────────────────────────────
-  byparr:
+  flaresolverr:
     # DockerHub mirror flaresolverr/flaresolverr:latest
-    # image: ghcr.io/flaresolverr/flaresolverr:latest
-    image: ghcr.io/thephaseless/byparr:main
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    # image: ghcr.io/thephaseless/byparr:main
     # container_name: flaresolverr
-    container_name: byparr
+    container_name: flaresolverr
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - LOG_HTML=${LOG_HTML:-false}
