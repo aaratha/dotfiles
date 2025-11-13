@@ -1,0 +1,5 @@
+jellyfin.cinebrief.com {
+    encode gzip
+    reverse_proxy jellyfin:8096
+}
+
