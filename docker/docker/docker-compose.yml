@@ -6,22 +6,21 @@ services:
     image: qmcgaw/gluetun:latest
     container_name: gluetun
     cap_add:
-      - NET_ADMIN       # required for VPN
+      - NET_ADMIN # required for VPN
     environment:
       - VPNSP=NORDVPN
       - USER=1DkBWwqdtj4XbdFBk81fW3ai
       - PASSWORD=TFzSamk2SSBMewghc1MaQMZ4
       - TZ=America/New_York
-      - OPENVPN_NETWORK=10.0.0.0/8   # optional, internal network for routed containers
+      - OPENVPN_NETWORK=10.0.0.0/8 # optional, internal network for routed containers
       - SERVER_REGIONS=United_States # or pick your preferred NordVPN region
     ports:
-      - "8118:8118"  # optional HTTP proxy
-      - "8388:8388"  # optional SOCKS5 proxy
+      - "8118:8118" # optional HTTP proxy
+      - "8388:8388" # optional SOCKS5 proxy
       - "8080:8080"
     volumes:
       - /home/aaratha/docker/configs/gluetun:/gluetun
     restart: unless-stopped
-
 
   # ────────────────────────────────
   # qBittorrent (routed through VPN)
@@ -42,7 +41,6 @@ services:
       - /media/movies:/movies
       - /home/aaratha/downloads:/downloads
     restart: unless-stopped
-
 
   # ────────────────────────────────
   # Radarr (Movies)
@@ -82,7 +80,6 @@ services:
     sysctls:
       - net.ipv6.conf.all.disable_ipv6=1
 
-
   # ────────────────────────────────
   # Jellyfin (Media server)
   # ────────────────────────────────
@@ -115,7 +112,7 @@ services:
     restart: unless-stopped
 
   # ────────────────────────────────
-  # FlareSolverr 
+  # FlareSolverr
   # ────────────────────────────────
   flaresolverr:
     # DockerHub mirror flaresolverr/flaresolverr:latest
@@ -127,24 +124,46 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - LOG_HTML=${LOG_HTML:-false}
       - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
-      - TZ=America/New_York
+      - TZ=Europe/London
+
     ports:
       - "${PORT:-8191}:8191"
-    restart: unless-stopped 
+    restart: unless-stopped
     sysctls:
       - net.ipv6.conf.all.disable_ipv6=1
 
-  # byparr:
-  #   image: ghcr.io/thephaseless/byparr:latest
-  #   container_name: byparr
-  #   ports:
-  #     - "8191:8191"
-  #   environment:
-  #     - LOG_LEVEL=info
-  #     - TZ=America/New_York
-  #     # optionally configure browser/proxy use:
-  #     - USE_HEADLESS=true
-  #     - USE_XVFB=true
-  #     #- PROXY=http://username:password@proxyhost:port
-  #   restart: unless-stopped
+    # byparr:
+    #   image: ghcr.io/thephaseless/byparr:latest
+    #   container_name: byparr
+    #   ports:
+    #     - "8191:8191"
+    #   environment:
+    #     - LOG_LEVEL=info
+    #     - TZ=America/New_York
+    #     # optionally configure browser/proxy use:
+    #     - USE_HEADLESS=true
+    #     - USE_XVFB=true
+    #     #- PROXY=http://username:password@proxyhost:port
+    #   restart: unless-stopped
+    # ────────────────────────────────
+    # Caddy (Reverse Proxy + HTTPS)
+    # ────────────────────────────────
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - jellyfin
+    networks:
+      - default
 
+volumes:
+  caddy_data:
+  caddy_config:
