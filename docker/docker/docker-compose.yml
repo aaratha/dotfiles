@@ -63,6 +63,26 @@ services:
     restart: unless-stopped
 
   # ────────────────────────────────
+  # Sonarr (TV Shows)
+  # ────────────────────────────────
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    ports:
+      - "8989:8989"
+    depends_on:
+      - qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    volumes:
+      - /home/aaratha/docker/configs/sonarr:/config
+      - /home/aaratha/downloads:/downloads
+      - /media/tv:/tv
+    restart: unless-stopped
+
+  # ────────────────────────────────
   # Prowlarr (Indexer management)
   # ────────────────────────────────
   prowlarr:
@@ -185,7 +205,6 @@ services:
       - /media/movies:/movies
       - /home/aaratha/downloads:/downloads
     restart: unless-stopped
-
 
 volumes:
   caddy_data:
