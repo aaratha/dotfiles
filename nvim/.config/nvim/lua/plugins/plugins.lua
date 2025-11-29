@@ -74,6 +74,29 @@ return {
           },
         },
       },
+      styles = {
+        zen = {
+          enter = true,
+          fixbuf = false,
+          minimal = false,
+          width = 80,
+          height = 0,
+          backdrop = { transparent = true, blend = 40 },
+          keys = { q = false },
+          zindex = 40,
+          wo = {
+            winhighlight = "NormalFloat:Normal",
+          },
+          w = {
+            snacks_main = true,
+          },
+          on_open = function(win)
+            -- disable line numbers
+            vim.wo.number = false
+            vim.wo.relativenumber = false
+          end,
+        },
+      },
     },
   },
 
@@ -93,8 +116,8 @@ return {
     config = function()
       -- Setup orgmode
       require("orgmode").setup({
-        org_agenda_files = "~/orgfiles/**/*",
-        org_default_notes_file = "~/orgfiles/refile.org",
+        org_agenda_files = "~/OneDrive/org/**/*",
+        org_default_notes_file = "~/OneDrive/org/refile.org",
       })
 
       -- NOTE: If you are using nvim-treesitter with ~ensure_installed = "all"~ option
@@ -122,6 +145,13 @@ return {
           pdf = { options = "--overwrite" },
         },
       })
+    end,
+  },
+
+  {
+    "akinsho/org-bullets.nvim",
+    config = function()
+      require("org-bullets").setup()
     end,
   },
 }
