@@ -38,18 +38,18 @@
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
 (add-to-list 'custom-theme-load-path (expand-file-name "themes/" doom-user-dir))
-;; Set theme based on display type
+;; Default to the GUI variant; swap in the terminal-friendly version when needed.
+(setq doom-theme 'doom-one)
 
-(setq catppuccin-flavor 'mocha) ;; or 'latte, 'macchiato, or 'mocha
+(defun my/doom-theme-for-frame (frame)
+  (with-selected-frame frame
+    (if (display-graphic-p frame)
+        (load-theme 'doom-one t)
+      (load-theme 'doom-solarized-transparent-term t))))
 
-;; (use-package! catppuccin-theme
-;;   :init (setq catppuccin-flavor 'mocha)
-;;   :hook (after-init . (lambda () (load-theme 'catppuccin))))
-
-;; (if (display-graphic-p)
-;;     ( setq doom-theme 'doom-tomorrow-night-theme )
-;;     ( setq doom-theme 'doom-solarized-transparent-term ))
-                  ;; rogue, gruvbox, opera, sourcerer
+(add-hook 'after-make-frame-functions #'my/doom-theme-for-frame)
+(unless (display-graphic-p)
+  (my/doom-theme-for-frame (selected-frame)))
 
 
 (set-frame-parameter nil 'alpha-background 0.6) ; For current frame
