@@ -51,7 +51,6 @@
 (unless (display-graphic-p)
   (my/doom-theme-for-frame (selected-frame)))
 
-
 (set-frame-parameter nil 'alpha-background 0.6) ; For current frame
 
 ;; Set the initial window width and height (in columns and rows)

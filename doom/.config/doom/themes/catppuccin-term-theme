@@ -75,6 +75,11 @@ The theme has to be reloaded after changing anything in this group."
   :type 'boolean
   :group 'catppuccin)
 
+(defcustom catppuccin-transparent-background nil
+  "Disable background colors so terminal/frame transparency shows through."
+  :type 'boolean
+  :group 'catppuccin)
+
 (defcustom catppuccin-flavor 'mocha
   "The flavor to use for the Catppuccin theme.
 Must be one of `mocha`, `macchiato`, `frappe`, or `latte`."
@@ -295,6 +300,11 @@ FLAVOR defaults to the value of `catppuccin-flavor'."
           (catppuccin-quantize-color (catppuccin-color 'mantle)))
         (ctp-crust     (catppuccin-color 'crust)
           (catppuccin-quantize-color (catppuccin-color 'crust)))
+        (ctp-base-bg   (if catppuccin-transparent-background
+                         'unspecified (catppuccin-color 'base))
+          (if catppuccin-transparent-background
+            'unspecified (catppuccin-quantize-color
+                           (catppuccin-color 'base))))
 
         (ctp-current   (if (eq catppuccin-flavor 'latte)
                          (catppuccin-darken (catppuccin-color 'base) 5)
@@ -314,13 +324,13 @@ FLAVOR defaults to the value of `catppuccin-flavor'."
       '(
          ;; default / basic faces
          (cursor :background ,ctp-rosewater)
-         (default :background ,ctp-base :foreground ,ctp-text)
+         (default :background ,ctp-base-bg :foreground ,ctp-text)
          (italic :slant italic)
          (default-italic :slant italic)
          (hl-todo :foreground ,ctp-peach)
          (error :foreground ,ctp-red)
          (ffap :inherit match)
-         (fringe :background ,ctp-base :foreground ,ctp-surface1)
+         (fringe :background ,ctp-base-bg :foreground ,ctp-surface1)
          (header-line :inherit mode-line)
          (help-key-binding :background ,ctp-mantle :foreground ,ctp-blue
            :box (:line-width (-1 . -1) :color ,ctp-crust :style nil))
@@ -334,9 +344,9 @@ FLAVOR defaults to the value of `catppuccin-flavor'."
          (link :foreground ,ctp-lavender :underline t)
          (link-unvisited :foreground ,ctp-blue :underline t)
          (linum :inherit default :foreground ,ctp-surface1
-           :background ,ctp-base)
+           :background ,ctp-base-bg)
          (line-number :inherit default :foreground ,ctp-surface1
-           :background ,ctp-base)
+           :background ,ctp-base-bg)
          (line-number-current-line :inherit line-number
            :foreground ,ctp-lavender)
          (match :background ,ctp-red :foreground ,ctp-mantle)
@@ -441,7 +451,8 @@ FLAVOR defaults to the value of `catppuccin-flavor'."
          (anzu-mode-line :foreground ,ctp-blue)
 
          ;; avy
-         (avy-background-face :foreground ,ctp-text :background ,ctp-base)
+         (avy-background-face :foreground ,ctp-text
+           :background ,ctp-base-bg)
          (avy-goto-char-timer-face :foreground ,ctp-blue
            :background ,ctp-surface0)
          (avy-lead-face :foreground ,ctp-base :background ,ctp-mauve)
@@ -461,7 +472,7 @@ FLAVOR defaults to the value of `catppuccin-flavor'."
          (company-tooltip-search-selection :inherit match)
          (company-tooltip-selection :background ,ctp-overlay0
            :foreground ,ctp-text)
-         (company-tooltip-mouse :background ,ctp-base)
+         (company-tooltip-mouse :background ,ctp-base-bg)
          (company-tooltip-common :foreground ,ctp-text :weight bold)
          (company-tooltip-common-selection :foreground ,ctp-text
            :weight bold)
@@ -1005,7 +1016,7 @@ FLAVOR defaults to the value of `catppuccin-flavor'."
          ;; mu4e
          (mu4e-unread-face :foreground ,ctp-red)
          (mu4e-view-url-number-face :foreground ,ctp-yellow)
-         (mu4e-highlight-face :background ,ctp-base
+         (mu4e-highlight-face :background ,ctp-base-bg
            :weight bold
            :extend t)
          (mu4e-header-highlight-face :background ,ctp-current
@@ -1081,7 +1092,7 @@ FLAVOR defaults to the value of `catppuccin-flavor'."
          (org-footnote :foreground ,ctp-mauve)
          (org-formula :foreground ,ctp-pink)
          (org-headline-done :inherit org-done)
-         (org-hide :foreground ,ctp-crust :background ,ctp-base)
+         (org-hide :foreground ,ctp-crust :background ,ctp-base-bg)
          (org-indent :foreground ,ctp-base)
          (org-level-1 :inherit bold :foreground ,ctp-red)
          (org-level-2 :inherit bold :foreground ,ctp-peach)
@@ -1127,7 +1138,7 @@ FLAVOR defaults to the value of `catppuccin-flavor'."
          (cfw:face-today :inherit cfw:face-today-title)
          (cfw:face-select :background ,ctp-surface1
            :foreground ,ctp-text)
-         (cfw:face-toolbar :background ,ctp-base)
+         (cfw:face-toolbar :background ,ctp-base-bg)
          (cfw:face-toolbar-button-off :foreground ,ctp-lavender)
          (cfw:face-toolbar-button-on :foreground ,ctp-mauve)
 
@@ -1213,10 +1224,10 @@ FLAVOR defaults to the value of `catppuccin-flavor'."
            :strike-through t :slant oblique)
 
          ;; tab-bar & tab-line (since Emacs 27.1)
-         (tab-bar :foreground ,ctp-subtext0 :background ,ctp-base)
+         (tab-bar :foreground ,ctp-subtext0 :background ,ctp-base-bg)
          (tab-bar-tab :foreground ,ctp-text :background ,ctp-current)
          (tab-bar-tab-inactive :foreground ,ctp-subtext0
-           :background ,ctp-base)
+           :background ,ctp-base-bg)
          (tab-line :inherit tab-bar)
          (tab-line-tab :inherit tab-bar-tab)
          (tab-line-tab-inactive :inherit tab-bar-tab-inactive)
@@ -1225,7 +1236,7 @@ FLAVOR defaults to the value of `catppuccin-flavor'."
 
          ;; centaur-tabs
          (centaur-tabs-default :foreground ,ctp-subtext0
-           :background ,ctp-base)
+           :background ,ctp-base-bg)
          (centaur-tabs-unselected :foreground ,ctp-subtext0
            :background ,ctp-mantle)
          (centaur-tabs-selected :foreground ,ctp-text
@@ -1248,7 +1259,7 @@ FLAVOR defaults to the value of `catppuccin-flavor'."
            :inherit centaur-tabs-unselected-modified)
 
          ;; term
-         (term :foreground ,ctp-text :background ,ctp-base)
+         (term :foreground ,ctp-text :background ,ctp-base-bg)
          (term-color-black
            ,@(if (eq catppuccin-flavor 'latte)
                (list :foreground ctp-subtext1  :background ctp-subtext1)
@@ -1327,13 +1338,14 @@ FLAVOR defaults to the value of `catppuccin-flavor'."
          (treemacs-on-success-pulse-face :foreground ,ctp-text)
          (treemacs-peek-mode-indicator-face :foreground ,ctp-text)
          (treemacs-remote-face :foreground ,ctp-text)
-         (treemacs-root-face :foreground ,ctp-blue :background ,ctp-base)
+         (treemacs-root-face :foreground ,ctp-blue
+           :background ,ctp-base-bg)
          (treemacs-root-remote-disconnected-face :foreground ,ctp-yellow)
          (treemacs-root-remote-unreadable-face :foreground ,ctp-yellow)
          (treemacs-root-unreadable-face :foreground ,ctp-red)
          (treemacs-tags-face :foreground ,ctp-text)
          (treemacs-term-node-face :foreground ,ctp-blue)
-         (treemacs-window-background-face :background ,ctp-base)
+         (treemacs-window-background-face :background ,ctp-base-bg)
          ;; treemacs-nerd-icons
          (treemacs-nerd-icons-root-face :foreground ,ctp-blue)
          (treemacs-nerd-icons-file-face :foreground ,ctp-blue)
