@@ -74,6 +74,26 @@ return {
           },
         },
       },
+      zen = {
+        on_open = function(win)
+          -- disable line numbers
+          vim.wo.number = false
+          vim.wo.relativenumber = false
+
+          -- enable wrap + breakindent when Zen opens
+          vim.wo.wrap = true
+          vim.wo.linebreak = true
+          vim.wo.breakindent = true
+          vim.wo.breakindentopt = "shift:2"
+        end,
+
+        on_close = function()
+          -- restore defaults after Zen closes
+          vim.wo.wrap = false
+          vim.wo.linebreak = false
+          vim.wo.breakindent = false
+        end,
+      },
       styles = {
         zen = {
           enter = true,
@@ -90,11 +110,6 @@ return {
           w = {
             snacks_main = true,
           },
-          on_open = function(win)
-            -- disable line numbers
-            vim.wo.number = false
-            vim.wo.relativenumber = false
-          end,
         },
       },
     },
@@ -110,8 +125,23 @@ return {
   },
 
   {
+    "nvim-treesitter/nvim-treesitter",
+    opts = {
+      ensure_installed = { "org" }, -- add org to the list of parsers
+      highlight = {
+        enable = true,
+        additional_vim_regex_highlighting = { "org" },
+      },
+    },
+  },
+
+  {
     "nvim-orgmode/orgmode",
-    event = "VeryLazy",
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter",
+    },
+    --event = "VeryLazy",
+    event = "BufRead", -- replace VeryLazy, otherwise syntax highlighting won't work
     ft = { "org" },
     config = function()
       -- Setup orgmode
@@ -119,13 +149,6 @@ return {
         org_agenda_files = "~/OneDrive/org/**/*",
         org_default_notes_file = "~/OneDrive/org/refile.org",
       })
-
-      -- NOTE: If you are using nvim-treesitter with ~ensure_installed = "all"~ option
-      -- add ~org~ to ignore_install
-      -- require('nvim-treesitter.configs').setup({
-      --   ensure_installed = 'all',
-      --   ignore_install = { 'org' },
-      -- })
     end,
   },
 
