@@ -26,6 +26,9 @@ return {
       float = {
         transparent = false,
       },
+      dim_inactive = {
+        enabled = false, -- dims the background color of inactive window
+      },
     },
   },
 
@@ -75,6 +78,7 @@ return {
         },
       },
       zen = {
+        toggles = { dim = false },
         on_open = function(win)
           -- disable line numbers
           vim.wo.number = false
@@ -127,7 +131,34 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     opts = {
-      ensure_installed = { "org" }, -- add org to the list of parsers
+      ensure_installed = {
+        "org",
+        "bash",
+        "c",
+        "cpp",
+        "diff",
+        "html",
+        "javascript",
+        "jsdoc",
+        "json",
+        "jsonc",
+        "lua",
+        "luadoc",
+        "luap",
+        "markdown",
+        "markdown_inline",
+        "printf",
+        "python",
+        "query",
+        "regex",
+        "toml",
+        "tsx",
+        "typescript",
+        "vim",
+        "vimdoc",
+        "xml",
+        "yaml",
+      },
       highlight = {
         enable = true,
         additional_vim_regex_highlighting = { "org" },
