@@ -179,6 +179,8 @@ return {
       require("orgmode").setup({
         org_agenda_files = "~/OneDrive/org/**/*",
         org_default_notes_file = "~/OneDrive/org/refile.org",
+        org_hide_emphasis_markers = true,
+        org_highlight_latex_and_related = "entities",
       })
     end,
   },

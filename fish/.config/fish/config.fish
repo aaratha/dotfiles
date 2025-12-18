@@ -15,5 +15,8 @@ function .....
     cd ../../../..
 end
 
+set -x JAVA_HOME (/usr/libexec/java_home -v 25)
+set -x PATH $JAVA_HOME/bin $PATH
+
 zoxide init fish | source
 starship init fish | source
