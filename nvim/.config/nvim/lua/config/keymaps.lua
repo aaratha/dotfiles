@@ -11,7 +11,7 @@ vim.keymap.set("n", "<leader>fon", function()
 end, { desc = "Personal Notes" })
 
 vim.keymap.set("n", "<leader>fow", function()
-  vim.cmd("edit ~/OneDrive/org/notes.org")
+  vim.cmd("edit ~/OneDrive/org/work.org")
 end, { desc = "Work Notes" })
 
 -- custom zen-mode
