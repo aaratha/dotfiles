@@ -88,7 +88,19 @@ return {
           vim.wo.wrap = true
           vim.wo.linebreak = true
           vim.wo.breakindent = true
-          vim.wo.breakindentopt = "shift:2"
+          vim.wo.breakindentopt = "shift:2" -- Shift wrapped lines by 2 spaces
+
+          -- Toggle off tmux status line
+          if vim.env.TMUX then
+            vim.fn.system("tmux set -g status off")
+          end
+
+          -- Hide fold arrows on the left side
+          vim.wo.foldcolumn = "0"
+          vim.wo.signcolumn = "no"
+
+          -- Toggle indent guides off
+          Snacks.toggle.indent():toggle()
         end,
 
         on_close = function()
@@ -96,6 +108,15 @@ return {
           vim.wo.wrap = false
           vim.wo.linebreak = false
           vim.wo.breakindent = false
+
+          if vim.env.TMUX then
+            vim.fn.system("tmux set -g status on")
+          end
+
+          vim.wo.foldcolumn = "1" -- or "auto"
+          vim.wo.signcolumn = "yes"
+
+          Snacks.toggle.indent():toggle()
         end,
       },
       styles = {
@@ -208,6 +229,33 @@ return {
     "akinsho/org-bullets.nvim",
     config = function()
       require("org-bullets").setup()
+    end,
+  },
+
+  {
+    "smoka7/multicursors.nvim",
+    event = "VeryLazy",
+    dependencies = {
+      "nvimtools/hydra.nvim",
+    },
+    opts = {},
+    cmd = { "MCstart", "MCvisual", "MCclear", "MCpattern", "MCvisualPattern", "MCunderCursor" },
+    keys = {
+      {
+        mode = { "v", "n" },
+        "<Leader>m",
+        "<cmd>MCstart<cr>",
+        desc = "Create a selection for selected text or word under the cursor",
+      },
+    },
+  },
+
+  {
+    "aaratha/org-cycle-lite.nvim",
+    lazy = false,
+    dependencies = { "nvim-orgmode/orgmode" },
+    config = function()
+      require("org-cycle-lite").setup()
     end,
   },
 }
