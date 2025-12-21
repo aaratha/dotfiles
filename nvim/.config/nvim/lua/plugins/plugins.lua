@@ -189,6 +189,7 @@ return {
 
   {
     "nvim-orgmode/orgmode",
+    -- "orgmode", -- local dev
     dependencies = {
       "nvim-treesitter/nvim-treesitter",
     },
