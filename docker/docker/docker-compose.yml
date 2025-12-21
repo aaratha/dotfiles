@@ -115,6 +115,7 @@ services:
     volumes:
       - /home/aaratha/docker/configs/jellyfin:/config
       - /media/movies:/media/movies
+      - /media/tv:/media/tv
     restart: unless-stopped
 
   # ────────────────────────────────
@@ -203,6 +204,7 @@ services:
     volumes:
       - /home/aaratha/docker/configs/bazarr:/config
       - /media/movies:/movies
+      - /media/tv:/tv
       - /home/aaratha/downloads:/downloads
     restart: unless-stopped
 
