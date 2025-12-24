@@ -51,7 +51,15 @@
 (unless (display-graphic-p)
   (my/doom-theme-for-frame (selected-frame)))
 
+(add-hook 'doom-load-theme-hook
+          (lambda ()
+            (set-face-background 'default "#000a0f")))
+
+
 (set-frame-parameter nil 'alpha-background 0.6) ; For current frame
+(set-frame-parameter nil 'ns-background-blur 20)
+
+(add-to-list 'default-frame-alist '(undecorated-round . t))
 
 ;; Set the initial window width and height (in columns and rows)
 (setq initial-frame-alist
@@ -261,8 +269,8 @@
  '(highlight-indent-guides-top-character-face ((t (:foreground "#6898a3"))))
  '(highlight-indent-guides-stack-character-face ((t (:foreground "#4d7882")))))
 
-(setq ispell-program-name "/opt/homebrew/bin/aspell")
-(flyspell-mode-off)
+;; (setq ispell-program-name "/opt/homebrew/bin/aspell")
+;; (flyspell-mode-off)
 
 ;; fix blurry pdfs on mac
 (setq pdf-view-use-scaling t)
