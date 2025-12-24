@@ -75,7 +75,11 @@ return {
               },
             },
           },
+          files = {
+            hidden = true,
+          },
         },
+        hidden = true,
       },
       zen = {
         toggles = { dim = false },
@@ -257,6 +261,32 @@ return {
     dependencies = { "nvim-orgmode/orgmode" },
     config = function()
       require("org-cycle-lite").setup()
+    end,
+  },
+
+  {
+    "neovim/nvim-lspconfig",
+    opts = {
+      servers = {
+        lua_ls = {
+          settings = {
+            Lua = {
+              workspace = {
+                library = {
+                  vim.fn.expand("~/.hammerspoon/Spoons/EmmyLua.spoon/annotations"),
+                },
+                checkThirdParty = false,
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    "petertriho/nvim-scrollbar",
+    config = function()
+      require("scrollbar").setup()
     end,
   },
 }

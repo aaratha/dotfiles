@@ -62,7 +62,15 @@
 (unless (display-graphic-p)
   (my/doom-theme-for-frame (selected-frame)))
 
+(add-hook 'doom-load-theme-hook
+          (lambda ()
+            (set-face-background 'default "#000a0f")))
+
+
 (set-frame-parameter nil 'alpha-background 0.6) ; For current frame
+(set-frame-parameter nil 'ns-background-blur 20)
+
+(add-to-list 'default-frame-alist '(undecorated-round . t))
 
 #+end_src
 ** Initial Dimensions
@@ -307,8 +315,8 @@
 
 ** Flyspell
 #+begin_src emacs-lisp
-(setq ispell-program-name "/opt/homebrew/bin/aspell")
-(flyspell-mode-off)
+;; (setq ispell-program-name "/opt/homebrew/bin/aspell")
+;; (flyspell-mode-off)
 #+end_src
 ** PDF-Tools
 #+begin_src emacs-lisp
