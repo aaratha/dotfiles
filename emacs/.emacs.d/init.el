@@ -474,6 +474,7 @@
 :defer t        ;; Defer loading Which-Key until after init.
 :hook
 (after-init . which-key-mode)) ;; Enable which-key mode after initialization.
+(setq which-key-idle-delay 0.3) ; default is 1.0
 
 ;;; ==================== EXTERNAL PACKAGES ====================
 ;;
@@ -909,7 +910,7 @@
 (evil-define-key 'normal 'global (kbd "[ c") 'diff-hl-previous-hunk) ;; Previous diff hunk
 
 ;; NeoTree command for file exploration
-(evil-define-key 'normal 'global (kbd "<leader> e") 'neotree-toggle)
+;; (evil-define-key 'normal 'global (kbd "<leader> e") 'neotree-toggle)
 ;;(evil-define-key 'normal 'global (kbd "<leader> e d") 'dired-jump)
 
 ;; Magit keybindings for Git integration
@@ -1148,22 +1149,24 @@
 :hook
 (after-init . doom-modeline-mode))
 
-;;; NEOTREE
-;; The `neotree' package provides a file tree explorer for Emacs, allowing easy navigation
-;; through directories and files. It presents a visual representation of the file system
-;; and integrates with version control to show file states.
-(use-package neotree
-:ensure t
-:straight t
-:custom
-(neo-show-hidden-files t)                ;; By default shows hidden files (toggle with H)
-(neo-theme 'nerd)                        ;; Set the default theme for Neotree to 'nerd' for a visually appealing look.
-(neo-vc-integration '(face char))        ;; Enable VC integration to display file states with faces (color coding) and characters (icons).
-:defer t                                 ;; Load the package only when needed to improve startup time.
-:config
-(if ek-use-nerd-fonts                    ;; Check if nerd fonts are being used.
-    (setq neo-theme 'nerd-icons)         ;; Set the theme to 'nerd-icons' if nerd fonts are available.
-    (setq neo-theme 'nerd)))               ;; Otherwise, fall back to the 'nerd' theme.
+;; ;;; NEOTREE
+  ;; ;; The `neotree' package provides a file tree explorer for Emacs, allowing easy navigation
+  ;; ;; through directories and files. It presents a visual representation of the file system
+  ;; ;; and integrates with version control to show file states.
+  ;; (use-package neotree
+  ;; :ensure t
+  ;; :straight t
+  ;; :custom
+  ;; (neo-show-hidden-files t)                ;; By default shows hidden files (toggle with H)
+  ;; (neo-theme 'nerd)                        ;; Set the default theme for Neotree to 'nerd' for a visually appealing look.
+  ;; (neo-vc-integration '(face char))        ;; Enable VC integration to display file states with faces (color coding) and characters (icons).
+  ;; :defer t                                 ;; Load the package only when needed to improve startup time.
+  ;; :config
+  ;; (if ek-use-nerd-fonts                    ;; Check if nerd fonts are being used.
+  ;;     (setq neo-theme 'nerd-icons)         ;; Set the theme to 'nerd-icons' if nerd fonts are available.
+  ;;     (setq neo-theme 'nerd)))               ;; Otherwise, fall back to the 'nerd' theme.
+(use-package treemacs
+  :ensure t)
 
 ;;; NERD ICONS
 ;; The `nerd-icons' package provides a set of icons for use in Emacs. These icons can
@@ -1232,13 +1235,15 @@
 (set-face-attribute 'line-number nil :background "#000a0f")
 (set-face-attribute 'line-number-current-line nil :background "#000a0f")
 ;; Set background color of code blocks
-(set-face-attribute 'org-block nil :background "#0a1317")
+(with-eval-after-load 'org
+(set-face-attribute 'org-block nil :background "#0b181e"))
+
 
 
 (add-to-list 'default-frame-alist '(undecorated-round . t))
 
 (set-frame-parameter nil 'alpha-background 0.5) 
-(set-frame-parameter nil 'ns-background-blur 20)
+(set-frame-parameter nil 'ns-background-blur 40)
 
 (setq org-confirm-babel-evaluate nil)
 (setq org-babel-tangle-use-default-file-name nil) ;; optional
@@ -1251,64 +1256,17 @@
 (use-package writeroom-mode :ensure t)
 (setq writeroom-global-effects (delq 'writeroom-set-alpha writeroom-global-effects))
 (setq writeroom-global-effects (delq 'writeroom-set-fullscreen writeroom-global-effects))
-(evil-define-key 'normal 'global (kbd "<leader> u z") 'writeroom-mode)
-
-
 
 
 (use-package org-superstar :ensure t)
 
 (use-package vterm
-:ensure t)
+    :ensure t
+    :config
+    (setq vterm-timer-delay 0.01))
 
 (use-package posframe
-:ensure t)
-
-(defvar my/vterm-childframe-buffer "*vterm-childframe*"
-"Buffer name for the persistent vterm childframe.")
-
-(defvar my/vterm-childframe-frame nil
-"The posframe childframe for vterm.")
-
-;; (defun my/toggle-vterm-childframe ()
-;;   "Toggle a persistent vterm in a childframe using posframe."
-;;   (interactive)
-;;   (let ((buf (get-buffer-create my/vterm-childframe-buffer)))
-;;     ;; Create vterm if not already running
-;;     (unless (get-buffer-process buf)
-;;       (with-current-buffer buf
-;;         (vterm-mode)))
-;;     ;; If frame exists, toggle visibility
-;;     (if (and my/vterm-childframe-frame
-;;              (frame-live-p my/vterm-childframe-frame))
-;;         (if (frame-visible-p my/vterm-childframe-frame)
-;;             (make-frame-invisible my/vterm-childframe-frame)
-;;           ;; Show frame and focus
-;;           (make-frame-visible my/vterm-childframe-frame)
-;;           (select-frame-set-input-focus my/vterm-childframe-frame)
-;;           (with-selected-frame my/vterm-childframe-frame
-;;             (switch-to-buffer buf)
-;;             (vterm--goto-line 0))))
-;;       ;; Otherwise, create new childframe
-;;       (setq my/vterm-childframe-frame
-;;             (posframe-show buf
-;;                            :position (point)
-;;                            :poshandler #'posframe-poshandler-frame-center
-;;                            :width 100
-;;                            :height 20
-;;                            :border-width 1
-;;                            :border-color "gray"
-;;                            :internal-border-width 10
-;;                            :background-color "#1e1e1e")))
-;;     ;; Ensure focus goes into vterm
-;;     (select-frame-set-input-focus my/vterm-childframe-frame)
-;;     (with-selected-frame my/vterm-childframe-frame
-;;       (switch-to-buffer buf)
-;;       (vterm--goto-line 0)))
-
-
-;; ;; Example keybind (adjust as you like)
-;; (global-set-key (kbd "C-`") #'my/toggle-vterm-childframe)
+    :ensure t)
 
 
 (defvar my/toggle-vterm-buffer-name "*scratch-vterm*"
@@ -1372,41 +1330,11 @@
 (load-file (expand-file-name "init.el" user-emacs-directory))
 (message "Emacs config reloaded."))
 
-(evil-define-key 'normal 'global (kbd "<leader> r") 'my/reload-emacs-config)
-
-
-(evil-define-key 'normal 'global (kbd "<leader> t") 'my/toggle-vterm)
-
-(evil-define-key 'normal 'global (kbd "<leader> s s") 'my/toggle-spotify-player)
 
 
 (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1)))
 
 (setq org-agenda-files (quote ("~/OneDrive/org")))
-
-;; notes.org
-(evil-define-key 'normal 'global
-(kbd "SPC f n")  ; SPC is your leader
-(lambda ()
-    (interactive)
-    (find-file "~/OneDrive/org/notes.org")))
-
-(evil-define-key 'normal 'global
-(kbd "SPC f w")  ; SPC is your leader
-(lambda ()
-    (interactive)
-    (find-file "~/OneDrive/org/work.org")))
-
-
-(evil-define-key 'normal 'global
-(kbd "SPC f r")  ; SPC is your leader
-(lambda ()
-    (interactive)
-    (find-file "~/.emacs.d/init.org")))
-
-(evil-define-key 'normal 'global (kbd "<leader> w s") 'split-window-vertically)
-(evil-define-key 'normal 'global (kbd "<leader> w v") 'split-window-horizontally)
-(evil-define-key 'normal 'global (kbd "<leader> w q") 'delete-window)
 
 ;;; UTILITARY FUNCTION TO INSTALL EMACS-KICK
 (defun ek/first-install ()
@@ -1426,4 +1354,45 @@
 (kill-emacs))                                      ;; Close Emacs after installation is complete.
 
 (provide 'init)
-;;; init.el ends here
+
+;; (use-package counsel-spotify :ensure t)
+(use-package smudge
+ :straight (smudge :type git :host github :repo "danielfm/smudge")
+ :bind ("C-c ." . smudge-command-map)
+ :custom
+ (smudge-oauth2-client-secret "717c80886e244b4ca8cf2bd4405b0a94")
+ (smudge-oauth2-client-id "214deedb9d4142a99c5707c6c32e52e4")
+ (setq smudge-transport 'connect)
+ (smudge-player-use-transient-map t)
+ :init
+ ;; hack to ensure smudge-command-map load for modeline 
+ ;; status to function as expected in first go
+ (require 'smudge)
+ :config
+ (global-smudge-remote-mode));
+
+(with-eval-after-load 'evil
+    (evil-define-key 'normal 'global (kbd "<leader> u z") 'writeroom-mode)
+    (evil-define-key 'normal 'global (kbd "<leader> r") 'my/reload-emacs-config)
+    (evil-define-key 'normal 'global (kbd "<leader> t") 'my/toggle-vterm)
+    (evil-define-key 'normal 'global (kbd "<leader> s s") 'my/toggle-spotify-player)
+    (evil-define-key 'normal 'global
+    (kbd "SPC f n")  ; SPC is your leader
+    (lambda ()
+        (interactive)
+        (find-file "~/OneDrive/org/notes.org")))
+    (evil-define-key 'normal 'global
+    (kbd "SPC f w")  ; SPC is your leader
+    (lambda ()
+        (interactive)
+        (find-file "~/OneDrive/org/work.org")))
+    (evil-define-key 'normal 'global
+    (kbd "SPC f r")  ; SPC is your leader
+    (lambda ()
+        (interactive)
+        (find-file "~/.emacs.d/init.org")))
+    (evil-define-key 'normal 'global (kbd "<leader> w s") 'split-window-vertically)
+    (evil-define-key 'normal 'global (kbd "<leader> w v") 'split-window-horizontally)
+    (evil-define-key 'normal 'global (kbd "<leader> w q") 'delete-window))
+
+(evil-define-key 'normal 'global (kbd "<leader> e") 'treemacs)
