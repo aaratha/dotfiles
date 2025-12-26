@@ -461,6 +461,57 @@
 ;; it's explicitly needed, which can help speed up Emacs startup time.
 (use-package org
 :ensure nil     ;; This is built-in, no need to fetch it.
+:init
+(defun +org-cycle-only-current-subtree-h (&optional arg)
+  "Toggle the local fold at the point, and no deeper.
+  `org-cycle's standard behavior is to cycle between three levels: collapsed,
+  subtree and whole document. This is slow, especially in larger org buffer. Most
+  of the time I just want to peek into the current subtree -- at most, expand
+  *only* the current subtree.
+  All my (performant) foldings needs are met between this and `org-show-subtree'
+  (on zO for evil users), and `org-cycle' on shift-TAB if I need it."
+  (interactive "P")
+  (unless (or (eq this-command 'org-shifttab)
+              (and (bound-and-true-p org-cdlatex-mode)
+                   (or (org-inside-LaTeX-fragment-p)
+                       (org-inside-latex-macro-p))))
+    (save-excursion
+      (org-beginning-of-line)
+      (let (invisible-p)
+        (when (and (org-at-heading-p)
+                   (or org-cycle-open-archived-trees
+                       (not (member org-archive-tag (org-get-tags))))
+                   (or (not arg)
+                       (setq invisible-p
+                             (memq (get-char-property (line-end-position)
+                                                      'invisible)
+                                   '(outline org-fold-outline)))))
+          (unless invisible-p
+            (setq org-cycle-subtree-status 'subtree))
+          (org-cycle-internal-local)
+          t)))))
+
+  (setq org-confirm-babel-evaluate nil)
+  (setq org-babel-tangle-use-default-file-name nil) ;; optional
+  (add-hook 'org-mode-hook
+          (lambda ()
+              (add-hook 'after-save-hook
+                      'org-babel-tangle
+                      nil 'local)))
+
+  (use-package org-superstar :ensure t)
+  (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1)))
+
+  (setq org-agenda-files (quote ("~/OneDrive/org")))
+:config
+;; Bind it to TAB in org-mode
+;;(define-key org-mode-map (kbd "<tab>") nil)
+;;(org-defkey org-mode-map \[(tab)\] '+org-cycle-only-current-subtree-h)
+;;(define-key org-mode-map (kbd "TAB") '+org-cycle-only-current-subtree-h)
+;;(evil-define-key 'normal org-mode-map (kbd "<tab>") '+org-cycle-only-current-subtree-h)
+(add-hook 'org-tab-first-hook
+ ;; Only fold the current tree, rather than recursively
+ #'+org-cycle-only-current-subtree-h)
 :defer t)       ;; Defer loading Org-mode until it's needed.
 
 ;;; WHICH-KEY
@@ -521,32 +572,6 @@
                     "  ")
                 cand))))
 
-;;; ORDERLESS
-;; Orderless enhances completion in Emacs by allowing flexible pattern matching.
-;; It works seamlessly with Vertico, enabling you to use partial strings and
-;; regular expressions to find files, buffers, and commands more efficiently.
-;; This combination provides a powerful and customizable completion experience.
-(use-package orderless
-:ensure t
-:straight t
-:defer t                                    ;; Load Orderless on demand.
-:after vertico                              ;; Ensure Vertico is loaded before Orderless.
-:init
-(setq completion-styles '(orderless basic)  ;; Set the completion styles.
-        completion-category-defaults nil      ;; Clear default category settings.
-        completion-category-overrides '((file (styles partial-completion))))) ;; Customize file completion styles.
-
-;;; MARGINALIA
-;; Marginalia enhances the completion experience in Emacs by adding
-;; additional context to the completion candidates. This includes
-;; helpful annotations such as documentation and other relevant
-;; information, making it easier to choose the right option.
-(use-package marginalia
-:ensure t
-:straight t
-:hook
-(after-init . marginalia-mode))
-
 ;;; CONSULT
 ;; Consult provides powerful completion and narrowing commands for Emacs.
 ;; It integrates well with other completion frameworks like Vertico, enabling
@@ -584,6 +609,108 @@
 :hook
 (embark-collect-mode . consult-preview-at-point-mode)) ;; Enable preview in Embark collect mode.
 
+;;; RAINBOW DELIMITERS
+;; The `rainbow-delimiters' package provides colorful parentheses, brackets, and braces
+;; to enhance readability in programming modes. Each level of nested delimiter is assigned
+;; a different color, making it easier to match pairs visually.
+(use-package rainbow-delimiters
+:defer t
+:straight t
+:ensure t
+:hook
+(prog-mode . rainbow-delimiters-mode))
+
+;;; INDENT-GUIDE
+;; The `indent-guide' package provides visual indicators for indentation levels
+;; in programming modes, making it easier to see code structure at a glance.
+;; It draws vertical lines (by default, a character of your choice) at each
+;; level of indentation, helping to improve readability and navigation within
+;; the code.
+(use-package indent-guide
+:defer t
+:straight t
+:ensure t
+:hook
+(prog-mode . indent-guide-mode)  ;; Activate indent-guide in programming modes.
+:config
+(setq indent-guide-char "│"))    ;; Set the character used for the indent guide.
+
+;;; DOOM MODELINE
+;; The `doom-modeline' package provides a sleek, modern mode-line that is visually appealing
+;; and functional. It integrates well with various Emacs features, enhancing the overall user
+;; experience by displaying relevant information in a compact format.
+(use-package doom-modeline
+:ensure t
+:straight t
+:defer t
+:custom
+(doom-modeline-buffer-file-name-style 'buffer-name)  ;; Set the buffer file name style to just the buffer name (without path).
+(doom-modeline-project-detection 'project)           ;; Enable project detection for displaying the project name.
+(doom-modeline-buffer-name t)                        ;; Show the buffer name in the mode line.
+(doom-modeline-vcs-max-length 25)                    ;; Limit the version control system (VCS) branch name length to 25 characters.
+:init
+:hook
+(after-init . doom-modeline-mode))
+
+;; ;;; NEOTREE
+    ;; ;; The `neotree' package provides a file tree explorer for Emacs, allowing easy navigation
+    ;; ;; through directories and files. It presents a visual representation of the file system
+    ;; ;; and integrates with version control to show file states.
+    ;; (use-package neotree
+    ;; :ensure t
+    ;; :straight t
+    ;; :custom
+    ;; (neo-show-hidden-files t)                ;; By default shows hidden files (toggle with H)
+    ;; (neo-theme 'nerd)                        ;; Set the default theme for Neotree to 'nerd' for a visually appealing look.
+    ;; (neo-vc-integration '(face char))        ;; Enable VC integration to display file states with faces (color coding) and characters (icons).
+    ;; :defer t                                 ;; Load the package only when needed to improve startup time.
+    ;; :config
+    ;; (if ek-use-nerd-fonts                    ;; Check if nerd fonts are being used.
+    ;;     (setq neo-theme 'nerd-icons)         ;; Set the theme to 'nerd-icons' if nerd fonts are available.
+    ;;     (setq neo-theme 'nerd)))               ;; Otherwise, fall back to the 'nerd' theme.
+(use-package treemacs
+  :ensure t
+  :init
+  (setq treemacs-width 26)
+  :config
+  (set-face-attribute 'treemacs-window-background-face nil
+    :background "#000a0f"))
+
+(add-to-list 'default-frame-alist '(undecorated-round . t))
+
+(set-frame-parameter nil 'alpha-background 0.5) 
+(set-frame-parameter nil 'ns-background-blur 40)
+
+(use-package writeroom-mode :ensure t)
+(setq writeroom-global-effects (delq 'writeroom-set-alpha writeroom-global-effects))
+(setq writeroom-global-effects (delq 'writeroom-set-fullscreen writeroom-global-effects))
+
+;;; MARGINALIA
+;; Marginalia enhances the completion experience in Emacs by adding
+;; additional context to the completion candidates. This includes
+;; helpful annotations such as documentation and other relevant
+;; information, making it easier to choose the right option.
+(use-package marginalia
+:ensure t
+:straight t
+:hook
+(after-init . marginalia-mode))
+
+;;; ORDERLESS
+;; Orderless enhances completion in Emacs by allowing flexible pattern matching.
+;; It works seamlessly with Vertico, enabling you to use partial strings and
+;; regular expressions to find files, buffers, and commands more efficiently.
+;; This combination provides a powerful and customizable completion experience.
+(use-package orderless
+:ensure t
+:straight t
+:defer t                                    ;; Load Orderless on demand.
+:after vertico                              ;; Ensure Vertico is loaded before Orderless.
+:init
+(setq completion-styles '(orderless basic)  ;; Set the completion styles.
+        completion-category-defaults nil      ;; Clear default category settings.
+        completion-category-overrides '((file (styles partial-completion))))) ;; Customize file completion styles.
+
 ;;; TREESITTER-AUTO
 ;; Treesit-auto simplifies the use of Tree-sitter grammars in Emacs,
 ;; providing automatic installation and mode association for various
@@ -599,18 +726,6 @@
 :config
 (treesit-auto-add-to-auto-mode-alist 'all)
 (global-treesit-auto-mode t))
-
-;;; MARKDOWN-MODE
-;; Markdown Mode provides support for editing Markdown files in Emacs,
-;; enabling features like syntax highlighting, previews, and more.
-;; It’s particularly useful for README files, as it can be set
-;; to use GitHub Flavored Markdown for enhanced compatibility.
-(use-package markdown-mode
-:defer t
-:straight t
-:ensure t
-:mode ("README\\.md\\'" . gfm-mode)            ;; Use gfm-mode for README.md files.
-:init (setq markdown-command "multimarkdown")) ;; Set the Markdown processing command.
 
 ;;; CORFU
 ;; Corfu Mode provides a text completion framework for Emacs.
@@ -637,15 +752,6 @@
 :init
 (global-corfu-mode)
 (corfu-popupinfo-mode t))
-
-;;; NERD-ICONS-CORFU
-;; Provides Nerd Icons to be used with CORFU.
-(use-package nerd-icons-corfu
-:if ek-use-nerd-fonts
-:ensure t
-:straight t
-:defer t
-:after (:all corfu))
 
 ;;; LSP
 ;; Emacs comes with an integrated LSP client called `eglot', which offers basic LSP functionality.
@@ -777,28 +883,25 @@
                                 (unknown . "┆")
                                 (ignored . "i"))))
 
-;;; MAGIT
-;; `magit' is a powerful Git interface for Emacs that provides a complete
-;; set of features to manage Git repositories. With its intuitive interface,
-;; you can easily stage, commit, branch, merge, and perform other Git
-;; operations directly from Emacs. Magit’s powerful UI allows for a seamless
-;; workflow, enabling you to visualize your repository's history and manage
-;; changes efficiently.
-;;
-;; In the Neovim ecosystem, similar functionality is provided by plugins such as
-;; `fugitive.vim', which offers a robust Git integration with commands that
-;; allow you to perform Git operations directly within Neovim. Another popular
-;; option is `neogit', which provides a more modern and user-friendly interface
-;; for Git commands in Neovim, leveraging features like diff views and staging
-;; changes in a visual format. Both of these plugins aim to replicate and
-;; extend the powerful capabilities that Magit offers in Emacs.
-(use-package magit
-:ensure t
+;;; MARKDOWN-MODE
+;; Markdown Mode provides support for editing Markdown files in Emacs,
+;; enabling features like syntax highlighting, previews, and more.
+;; It’s particularly useful for README files, as it can be set
+;; to use GitHub Flavored Markdown for enhanced compatibility.
+(use-package markdown-mode
+:defer t
 :straight t
-:config
-(if ek-use-nerd-fonts   ;; Check if nerd fonts are being used
-        (setopt magit-format-file-function #'magit-format-file-nerd-icons)) ;; Turns on magit nerd-icons
-:defer t)
+:ensure t
+:mode ("README\\.md\\'" . gfm-mode)            ;; Use gfm-mode for README.md files.
+:init (setq markdown-command "multimarkdown")) ;; Set the Markdown processing command.
+
+;;; DOTENV
+;; A simple major mode to provide .env files with color highlighting
+(use-package dotenv-mode
+:defer t
+:straight t
+:ensure t
+:config)
 
 ;;; XCLIP
 ;; `xclip' is an Emacs package that integrates the X Window System clipboard
@@ -812,21 +915,6 @@
 :defer t
 :hook
 (after-init . xclip-mode))     ;; Enable xclip mode after initialization.
-
-;;; INDENT-GUIDE
-;; The `indent-guide' package provides visual indicators for indentation levels
-;; in programming modes, making it easier to see code structure at a glance.
-;; It draws vertical lines (by default, a character of your choice) at each
-;; level of indentation, helping to improve readability and navigation within
-;; the code.
-(use-package indent-guide
-:defer t
-:straight t
-:ensure t
-:hook
-(prog-mode . indent-guide-mode)  ;; Activate indent-guide in programming modes.
-:config
-(setq indent-guide-char "│"))    ;; Set the character used for the indent guide.
 
 ;;; ADD-NODE-MODULES-PATH
 ;; The `add-node-modules-path' package ensures that Emacs uses the local
@@ -859,6 +947,160 @@
     '(add-hook 'typescriptreact-mode-hook #'add-node-modules-path))
 (eval-after-load 'js-mode
     '(add-hook 'js-mode-hook #'add-node-modules-path)))
+
+;; UNDO TREE
+;; The `undo-tree' package provides an advanced and visual way to
+;; manage undo history. It allows you to navigate and visualize your
+;; undo history as a tree structure, making it easier to manage
+;; changes in your buffers.
+(use-package undo-tree
+:defer t
+:ensure t
+:straight t
+:hook
+(after-init . global-undo-tree-mode)
+:init
+(setq undo-tree-visualizer-timestamps t
+        undo-tree-visualizer-diff t
+        ;; Increase undo limits to avoid losing history due to Emacs' garbage collection.
+        ;; These values can be adjusted based on your needs.
+        ;; 10X bump of the undo limits to avoid issues with premature
+        ;; Emacs GC which truncates the undo history very aggressively.
+        undo-limit 800000                     ;; Limit for undo entries.
+        undo-strong-limit 12000000            ;; Strong limit for undo entries.
+        undo-outer-limit 120000000)           ;; Outer limit for undo entries.
+:config
+;; Set the directory where `undo-tree' will save its history files.
+;; This keeps undo history across sessions, stored in a cache directory.
+(setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/.cache/undo"))))
+
+;;; PULSAR
+;; The `pulsar' package enhances the user experience in Emacs by providing
+;; visual feedback through pulsating highlights. This feature is especially
+;; useful in programming modes, where it can help users easily track
+;; actions such as scrolling, error navigation, yanking, deleting, and
+;; jumping to definitions.
+(use-package pulsar
+:defer t
+:straight t
+:ensure t
+:hook
+(after-init . pulsar-global-mode)
+:config
+(setq pulsar-pulse t)
+(setq pulsar-delay 0.025)
+(setq pulsar-iterations 10)
+(setq pulsar-face 'evil-ex-lazy-highlight)
+
+(add-to-list 'pulsar-pulse-functions 'evil-scroll-down)
+(add-to-list 'pulsar-pulse-functions 'flymake-goto-next-error)
+(add-to-list 'pulsar-pulse-functions 'flymake-goto-prev-error)
+(add-to-list 'pulsar-pulse-functions 'evil-yank)
+(add-to-list 'pulsar-pulse-functions 'evil-yank-line)
+(add-to-list 'pulsar-pulse-functions 'evil-delete)
+(add-to-list 'pulsar-pulse-functions 'evil-delete-line)
+(add-to-list 'pulsar-pulse-functions 'evil-jump-item)
+(add-to-list 'pulsar-pulse-functions 'diff-hl-next-hunk)
+(add-to-list 'pulsar-pulse-functions 'diff-hl-previous-hunk))
+
+;;; CATPPUCCIN THEME
+  ;; The `catppuccin-theme' package provides a visually pleasing color theme
+  ;; for Emacs that is inspired by the popular Catppuccin color palette.
+  ;; This theme aims to create a comfortable and aesthetic coding environment
+  ;; with soft colors that are easy on the eyes.
+(use-package catppuccin-theme
+  :ensure t
+  :straight t
+  :config
+  (catppuccin-set-color 'base "#000a0f")
+  (catppuccin-set-color 'mantle "#0b181e")
+
+  ;; using custom-set-faces instead of :custom-face due to catppuccin-get-color function calls
+  (custom-set-faces
+   `(diff-hl-change ((t (:background unspecified :foreground ,(catppuccin-get-color 'blue)))))
+   `(diff-hl-delete ((t (:background unspecified :foreground ,(catppuccin-get-color 'red)))))
+   `(diff-hl-insert ((t (:background unspecified :foreground ,(catppuccin-get-color 'green)))))
+   `(window-divider ((t (:foreground ,(catppuccin-get-color 'overlay0)))))
+   `(mode-line ((t (:background ,(catppuccin-get-color 'mantle) :foreground unspecified))))
+   `(mode-line-inactive ((t (:background ,(catppuccin-get-color 'mantle) :foreground unspecified))))
+   `(mode-line-inactive ((t (:background ,(catppuccin-get-color 'mantle) :foreground unspecified)))))
+
+  (custom-set-variables
+  '(window-divider-default-bottom-width 1)
+  '(window-divider-default-places t)
+  '(window-divider-default-right-width 1)
+  '(window-divider-mode t))
+
+  ;; Load the Catppuccin theme without prompting for confirmation.
+  (load-theme 'catppuccin :no-confirm))
+
+;;; NERD-ICONS-CORFU
+;; Provides Nerd Icons to be used with CORFU.
+(use-package nerd-icons-corfu
+:if ek-use-nerd-fonts
+:ensure t
+:straight t
+:defer t
+:after (:all corfu))
+
+;;; NERD ICONS
+;; The `nerd-icons' package provides a set of icons for use in Emacs. These icons can
+;; enhance the visual appearance of various modes and packages, making it easier to
+;; distinguish between different file types and functionalities.
+(use-package nerd-icons
+:if ek-use-nerd-fonts                   ;; Load the package only if the user has configured to use nerd fonts.
+:ensure t                               ;; Ensure the package is installed.
+:straight t
+:defer t)                               ;; Load the package only when needed to improve startup time.
+
+;;; NERD ICONS Dired
+;; The `nerd-icons-dired' package integrates nerd icons into the Dired mode,
+;; providing visual icons for files and directories. This enhances the Dired
+;; interface by making it easier to identify file types at a glance.
+(use-package nerd-icons-dired
+:if ek-use-nerd-fonts                   ;; Load the package only if the user has configured to use nerd fonts.
+:ensure t                               ;; Ensure the package is installed.
+:straight t
+:defer t                                ;; Load the package only when needed to improve startup time.
+:hook
+(dired-mode . nerd-icons-dired-mode))
+
+;;; NERD ICONS COMPLETION
+;; The `nerd-icons-completion' package enhances the completion interfaces in
+;; Emacs by integrating nerd icons with completion frameworks such as
+;; `marginalia'. This provides visual cues for the completion candidates,
+;; making it easier to distinguish between different types of items.
+(use-package nerd-icons-completion
+:if ek-use-nerd-fonts                   ;; Load the package only if the user has configured to use nerd fonts.
+:ensure t                               ;; Ensure the package is installed.
+:straight t
+:after (:all nerd-icons marginalia)     ;; Load after `nerd-icons' and `marginalia' to ensure proper integration.
+:config
+(nerd-icons-completion-mode)            ;; Activate nerd icons for completion interfaces.
+(add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup)) ;; Setup icons in the marginalia mode for enhanced completion display.
+
+;;; MAGIT
+;; `magit' is a powerful Git interface for Emacs that provides a complete
+;; set of features to manage Git repositories. With its intuitive interface,
+;; you can easily stage, commit, branch, merge, and perform other Git
+;; operations directly from Emacs. Magit’s powerful UI allows for a seamless
+;; workflow, enabling you to visualize your repository's history and manage
+;; changes efficiently.
+;;
+;; In the Neovim ecosystem, similar functionality is provided by plugins such as
+;; `fugitive.vim', which offers a robust Git integration with commands that
+;; allow you to perform Git operations directly within Neovim. Another popular
+;; option is `neogit', which provides a more modern and user-friendly interface
+;; for Git commands in Neovim, leveraging features like diff views and staging
+;; changes in a visual format. Both of these plugins aim to replicate and
+;; extend the powerful capabilities that Magit offers in Emacs.
+(use-package magit
+:ensure t
+:straight t
+:config
+(if ek-use-nerd-fonts   ;; Check if nerd fonts are being used
+        (setopt magit-format-file-function #'magit-format-file-nerd-icons)) ;; Turns on magit nerd-icons
+:defer t)
 
 ;; EVIL
 ;; The `evil' package provides Vim emulation within Emacs, allowing
@@ -1007,6 +1249,39 @@
                     (if (use-region-p)
                         (comment-or-uncomment-region (region-beginning) (region-end)))))
 
+(defun my/reload-emacs-config ()
+"Reload Emacs configuration from `user-emacs-directory`."
+(interactive)
+(load-file (expand-file-name "init.el" user-emacs-directory))
+(message "Emacs config reloaded."))
+
+(evil-define-key 'normal 'global (kbd "<leader> u z") 'writeroom-mode)
+(evil-define-key 'normal 'global (kbd "<leader> r") 'my/reload-emacs-config)
+(evil-define-key 'normal 'global
+(kbd "SPC f n")  ; SPC is your leader
+(lambda ()
+    (interactive)
+    (find-file "~/OneDrive/org/notes.org")))
+(evil-define-key 'normal 'global
+(kbd "SPC f w")  ; SPC is your leader
+(lambda ()
+    (interactive)
+    (find-file "~/OneDrive/org/work.org")))
+(evil-define-key 'normal 'global
+(kbd "SPC f r")  ; SPC is your leader
+(lambda ()
+    (interactive)
+    (find-file "~/.emacs.d/init.org")))
+(evil-define-key 'normal 'global (kbd "<leader> w s") 'evil-window-split)
+(evil-define-key 'normal 'global (kbd "<leader> w v") 'evil-window-vsplit)
+(evil-define-key 'normal 'global (kbd "<leader> w h") 'evil-window-left)
+(evil-define-key 'normal 'global (kbd "<leader> w l") 'evil-window-right)
+(evil-define-key 'normal 'global (kbd "<leader> w k") 'evil-window-up)
+(evil-define-key 'normal 'global (kbd "<leader> w j") 'evil-window-down)
+(evil-define-key 'normal 'global (kbd "<leader> w q") 'evil-window-delete)
+
+(evil-define-key 'normal 'global (kbd "<leader> e") 'treemacs)
+
 ;; Enable evil mode
 (evil-mode 1))
 
@@ -1055,286 +1330,80 @@
 :config
 (global-evil-matchit-mode 1))
 
-;; UNDO TREE
-;; The `undo-tree' package provides an advanced and visual way to
-;; manage undo history. It allows you to navigate and visualize your
-;; undo history as a tree structure, making it easier to manage
-;; changes in your buffers.
-(use-package undo-tree
-:defer t
-:ensure t
-:straight t
-:hook
-(after-init . global-undo-tree-mode)
-:init
-(setq undo-tree-visualizer-timestamps t
-        undo-tree-visualizer-diff t
-        ;; Increase undo limits to avoid losing history due to Emacs' garbage collection.
-        ;; These values can be adjusted based on your needs.
-        ;; 10X bump of the undo limits to avoid issues with premature
-        ;; Emacs GC which truncates the undo history very aggressively.
-        undo-limit 800000                     ;; Limit for undo entries.
-        undo-strong-limit 12000000            ;; Strong limit for undo entries.
-        undo-outer-limit 120000000)           ;; Outer limit for undo entries.
-:config
-;; Set the directory where `undo-tree' will save its history files.
-;; This keeps undo history across sessions, stored in a cache directory.
-(setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/.cache/undo"))))
-
-;;; RAINBOW DELIMITERS
-;; The `rainbow-delimiters' package provides colorful parentheses, brackets, and braces
-;; to enhance readability in programming modes. Each level of nested delimiter is assigned
-;; a different color, making it easier to match pairs visually.
-(use-package rainbow-delimiters
-:defer t
-:straight t
-:ensure t
-:hook
-(prog-mode . rainbow-delimiters-mode))
-
-;;; DOTENV
-;; A simple major mode to provide .env files with color highlighting
-(use-package dotenv-mode
-:defer t
-:straight t
-:ensure t
-:config)
-
-;;; PULSAR
-;; The `pulsar' package enhances the user experience in Emacs by providing
-;; visual feedback through pulsating highlights. This feature is especially
-;; useful in programming modes, where it can help users easily track
-;; actions such as scrolling, error navigation, yanking, deleting, and
-;; jumping to definitions.
-(use-package pulsar
-:defer t
-:straight t
-:ensure t
-:hook
-(after-init . pulsar-global-mode)
-:config
-(setq pulsar-pulse t)
-(setq pulsar-delay 0.025)
-(setq pulsar-iterations 10)
-(setq pulsar-face 'evil-ex-lazy-highlight)
-
-(add-to-list 'pulsar-pulse-functions 'evil-scroll-down)
-(add-to-list 'pulsar-pulse-functions 'flymake-goto-next-error)
-(add-to-list 'pulsar-pulse-functions 'flymake-goto-prev-error)
-(add-to-list 'pulsar-pulse-functions 'evil-yank)
-(add-to-list 'pulsar-pulse-functions 'evil-yank-line)
-(add-to-list 'pulsar-pulse-functions 'evil-delete)
-(add-to-list 'pulsar-pulse-functions 'evil-delete-line)
-(add-to-list 'pulsar-pulse-functions 'evil-jump-item)
-(add-to-list 'pulsar-pulse-functions 'diff-hl-next-hunk)
-(add-to-list 'pulsar-pulse-functions 'diff-hl-previous-hunk))
-
-;;; DOOM MODELINE
-;; The `doom-modeline' package provides a sleek, modern mode-line that is visually appealing
-;; and functional. It integrates well with various Emacs features, enhancing the overall user
-;; experience by displaying relevant information in a compact format.
-(use-package doom-modeline
-:ensure t
-:straight t
-:defer t
-:custom
-(doom-modeline-buffer-file-name-style 'buffer-name)  ;; Set the buffer file name style to just the buffer name (without path).
-(doom-modeline-project-detection 'project)           ;; Enable project detection for displaying the project name.
-(doom-modeline-buffer-name t)                        ;; Show the buffer name in the mode line.
-(doom-modeline-vcs-max-length 25)                    ;; Limit the version control system (VCS) branch name length to 25 characters.
-:config
-(if ek-use-nerd-fonts                                ;; Check if nerd fonts are being used.
-    (setq doom-modeline-icon t)                      ;; Enable icons in the mode line if nerd fonts are used.
-    (setq doom-modeline-icon nil))                     ;; Disable icons if nerd fonts are not being used.
-:hook
-(after-init . doom-modeline-mode))
-
-;; ;;; NEOTREE
-  ;; ;; The `neotree' package provides a file tree explorer for Emacs, allowing easy navigation
-  ;; ;; through directories and files. It presents a visual representation of the file system
-  ;; ;; and integrates with version control to show file states.
-  ;; (use-package neotree
-  ;; :ensure t
-  ;; :straight t
-  ;; :custom
-  ;; (neo-show-hidden-files t)                ;; By default shows hidden files (toggle with H)
-  ;; (neo-theme 'nerd)                        ;; Set the default theme for Neotree to 'nerd' for a visually appealing look.
-  ;; (neo-vc-integration '(face char))        ;; Enable VC integration to display file states with faces (color coding) and characters (icons).
-  ;; :defer t                                 ;; Load the package only when needed to improve startup time.
-  ;; :config
-  ;; (if ek-use-nerd-fonts                    ;; Check if nerd fonts are being used.
-  ;;     (setq neo-theme 'nerd-icons)         ;; Set the theme to 'nerd-icons' if nerd fonts are available.
-  ;;     (setq neo-theme 'nerd)))               ;; Otherwise, fall back to the 'nerd' theme.
-(use-package treemacs
-  :ensure t)
-
-;;; NERD ICONS
-;; The `nerd-icons' package provides a set of icons for use in Emacs. These icons can
-;; enhance the visual appearance of various modes and packages, making it easier to
-;; distinguish between different file types and functionalities.
-(use-package nerd-icons
-:if ek-use-nerd-fonts                   ;; Load the package only if the user has configured to use nerd fonts.
-:ensure t                               ;; Ensure the package is installed.
-:straight t
-:defer t)                               ;; Load the package only when needed to improve startup time.
-
-;;; NERD ICONS Dired
-;; The `nerd-icons-dired' package integrates nerd icons into the Dired mode,
-;; providing visual icons for files and directories. This enhances the Dired
-;; interface by making it easier to identify file types at a glance.
-(use-package nerd-icons-dired
-:if ek-use-nerd-fonts                   ;; Load the package only if the user has configured to use nerd fonts.
-:ensure t                               ;; Ensure the package is installed.
-:straight t
-:defer t                                ;; Load the package only when needed to improve startup time.
-:hook
-(dired-mode . nerd-icons-dired-mode))
-
-;;; NERD ICONS COMPLETION
-;; The `nerd-icons-completion' package enhances the completion interfaces in
-;; Emacs by integrating nerd icons with completion frameworks such as
-;; `marginalia'. This provides visual cues for the completion candidates,
-;; making it easier to distinguish between different types of items.
-(use-package nerd-icons-completion
-:if ek-use-nerd-fonts                   ;; Load the package only if the user has configured to use nerd fonts.
-:ensure t                               ;; Ensure the package is installed.
-:straight t
-:after (:all nerd-icons marginalia)     ;; Load after `nerd-icons' and `marginalia' to ensure proper integration.
-:config
-(nerd-icons-completion-mode)            ;; Activate nerd icons for completion interfaces.
-(add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup)) ;; Setup icons in the marginalia mode for enhanced completion display.
-
-;;; CATPPUCCIN THEME
-;; The `catppuccin-theme' package provides a visually pleasing color theme
-;; for Emacs that is inspired by the popular Catppuccin color palette.
-;; This theme aims to create a comfortable and aesthetic coding environment
-;; with soft colors that are easy on the eyes.
-(use-package catppuccin-theme
-:ensure t
-:straight t
-:config
-(custom-set-faces
-    ;; Set the color for changes in the diff highlighting to blue.
-    `(diff-hl-change ((t (:background unspecified :foreground ,(catppuccin-get-color 'blue))))))
-
-(custom-set-faces
-    ;; Set the color for deletions in the diff highlighting to red.
-    `(diff-hl-delete ((t (:background unspecified :foreground ,(catppuccin-get-color 'red))))))
-
-(custom-set-faces
-    ;; Set the color for insertions in the diff highlighting to green.
-    `(diff-hl-insert ((t (:background unspecified :foreground ,(catppuccin-get-color 'green))))))
-
-;; Load the Catppuccin theme without prompting for confirmation.
-(load-theme 'catppuccin :no-confirm))
-
-;; My configs
-(set-face-background 'default "#000a0f")
-(set-face-attribute 'fringe nil :background "#000a0f")
-;; Set background for line numbers
-(set-face-attribute 'line-number nil :background "#000a0f")
-(set-face-attribute 'line-number-current-line nil :background "#000a0f")
-;; Set background color of code blocks
-(with-eval-after-load 'org
-(set-face-attribute 'org-block nil :background "#0b181e"))
-
-
-
-(add-to-list 'default-frame-alist '(undecorated-round . t))
-
-(set-frame-parameter nil 'alpha-background 0.5) 
-(set-frame-parameter nil 'ns-background-blur 40)
-
-(setq org-confirm-babel-evaluate nil)
-(setq org-babel-tangle-use-default-file-name nil) ;; optional
-(add-hook 'org-mode-hook
-        (lambda ()
-            (add-hook 'after-save-hook
-                    'org-babel-tangle
-                    nil 'local)))
-
-(use-package writeroom-mode :ensure t)
-(setq writeroom-global-effects (delq 'writeroom-set-alpha writeroom-global-effects))
-(setq writeroom-global-effects (delq 'writeroom-set-fullscreen writeroom-global-effects))
-
-
-(use-package org-superstar :ensure t)
+;; (use-package counsel-spotify :ensure t)
+(use-package smudge
+ :straight (smudge :type git :host github :repo "danielfm/smudge")
+ :bind ("C-c ." . smudge-command-map)
+ :custom
+ (smudge-oauth2-client-secret "717c80886e244b4ca8cf2bd4405b0a94")
+ (smudge-oauth2-client-id "214deedb9d4142a99c5707c6c32e52e4")
+ (setq smudge-transport 'connect)
+ (smudge-player-use-transient-map t)
+ :init
+ ;; hack to ensure smudge-command-map load for modeline 
+ ;; status to function as expected in first go
+ (require 'smudge)
+ :config
+ (global-smudge-remote-mode));
 
 (use-package vterm
     :ensure t
+    :init
+      (defvar my/toggle-vterm-buffer-name "*scratch-vterm*"
+      "Name of the persistent vterm buffer for toggling.")
+      (defvar my/toggle-vterm-last-buffer nil
+      "Holds the buffer we were in before switching to the vterm.")
+      (defun my/toggle-vterm ()
+      "Toggle a persistent vterm buffer in full-frame."
+      (interactive)
+      (let ((buf (get-buffer-create my/toggle-vterm-buffer-name)))
+      ;; If buffer doesn't have a vterm process, start one
+      (unless (get-buffer-process buf)
+      (with-current-buffer buf
+          (vterm-mode)))
+      ;; If we're already in the vterm buffer, switch back
+      (if (eq (current-buffer) buf)
+          (when (and my/toggle-vterm-last-buffer
+                      (buffer-live-p my/toggle-vterm-last-buffer))
+          (switch-to-buffer my/toggle-vterm-last-buffer))
+      ;; Otherwise, store current buffer and switch to vterm
+      (setq my/toggle-vterm-last-buffer (current-buffer))
+      (switch-to-buffer buf)
+      ;; Make it full-frame
+      (delete-other-windows))))
+
+      ;; Spotify player keybind
+      (defvar my/spotify-vterm-buffer "*spotify-player*"
+      "Persistent vterm buffer running spotify_player.")
+      (defvar my/spotify-last-buffer nil
+      "Buffer active before switching to Spotify.")
+      (defun my/toggle-spotify-player ()
+      "Toggle spotify_player in a dedicated persistent vterm."
+      (interactive)
+      (let ((buf (get-buffer my/spotify-vterm-buffer)))
+      ;; If already in Spotify → go back
+      (if (eq (current-buffer) buf)
+          (when (and my/spotify-last-buffer
+                      (buffer-live-p my/spotify-last-buffer))
+              (switch-to-buffer my/spotify-last-buffer))
+          ;; Otherwise → store current buffer and switch to Spotify
+          (setq my/spotify-last-buffer (current-buffer))
+          ;; Create vterm buffer if needed
+          (unless buf
+          (setq buf (get-buffer-create my/spotify-vterm-buffer))
+          (with-current-buffer buf
+              (vterm-mode)
+              ;; Run spotify_player once
+              (vterm-send-string "spotify_player")
+              (vterm-send-return)))
+          ;; Show full-frame
+          (switch-to-buffer buf)
+          (delete-other-windows))))
+
+      (evil-define-key 'normal 'global (kbd "<leader> t") 'my/toggle-vterm)
+      (evil-define-key 'normal 'global (kbd "<leader> s s") 'my/toggle-spotify-player)
     :config
     (setq vterm-timer-delay 0.01))
-
-(use-package posframe
-    :ensure t)
-
-
-(defvar my/toggle-vterm-buffer-name "*scratch-vterm*"
-"Name of the persistent vterm buffer for toggling.")
-
-(defvar my/toggle-vterm-last-buffer nil
-"Holds the buffer we were in before switching to the vterm.")
-
-(defun my/toggle-vterm ()
-"Toggle a persistent vterm buffer in full-frame."
-(interactive)
-(let ((buf (get-buffer-create my/toggle-vterm-buffer-name)))
-;; If buffer doesn't have a vterm process, start one
-(unless (get-buffer-process buf)
-(with-current-buffer buf
-    (vterm-mode)))
-;; If we're already in the vterm buffer, switch back
-(if (eq (current-buffer) buf)
-    (when (and my/toggle-vterm-last-buffer
-                (buffer-live-p my/toggle-vterm-last-buffer))
-    (switch-to-buffer my/toggle-vterm-last-buffer))
-;; Otherwise, store current buffer and switch to vterm
-(setq my/toggle-vterm-last-buffer (current-buffer))
-(switch-to-buffer buf)
-;; Make it full-frame
-(delete-other-windows))))
-
-(defvar my/spotify-vterm-buffer "*spotify-player*"
-"Persistent vterm buffer running spotify_player.")
-
-(defvar my/spotify-last-buffer nil
-"Buffer active before switching to Spotify.")
-
-(defun my/toggle-spotify-player ()
-"Toggle spotify_player in a dedicated persistent vterm."
-(interactive)
-(let ((buf (get-buffer my/spotify-vterm-buffer)))
-;; If already in Spotify → go back
-(if (eq (current-buffer) buf)
-    (when (and my/spotify-last-buffer
-                (buffer-live-p my/spotify-last-buffer))
-        (switch-to-buffer my/spotify-last-buffer))
-    ;; Otherwise → store current buffer and switch to Spotify
-    (setq my/spotify-last-buffer (current-buffer))
-    ;; Create vterm buffer if needed
-    (unless buf
-    (setq buf (get-buffer-create my/spotify-vterm-buffer))
-    (with-current-buffer buf
-        (vterm-mode)
-        ;; Run spotify_player once
-        (vterm-send-string "spotify_player")
-        (vterm-send-return)))
-    ;; Show full-frame
-    (switch-to-buffer buf)
-    (delete-other-windows))))
-
-
-(defun my/reload-emacs-config ()
-"Reload Emacs configuration from `user-emacs-directory`."
-(interactive)
-(load-file (expand-file-name "init.el" user-emacs-directory))
-(message "Emacs config reloaded."))
-
-
-
-(add-hook 'org-mode-hook (lambda () (org-superstar-mode 1)))
-
-(setq org-agenda-files (quote ("~/OneDrive/org")))
 
 ;;; UTILITARY FUNCTION TO INSTALL EMACS-KICK
 (defun ek/first-install ()
@@ -1354,45 +1423,3 @@
 (kill-emacs))                                      ;; Close Emacs after installation is complete.
 
 (provide 'init)
-
-;; (use-package counsel-spotify :ensure t)
-(use-package smudge
- :straight (smudge :type git :host github :repo "danielfm/smudge")
- :bind ("C-c ." . smudge-command-map)
- :custom
- (smudge-oauth2-client-secret "717c80886e244b4ca8cf2bd4405b0a94")
- (smudge-oauth2-client-id "214deedb9d4142a99c5707c6c32e52e4")
- (setq smudge-transport 'connect)
- (smudge-player-use-transient-map t)
- :init
- ;; hack to ensure smudge-command-map load for modeline 
- ;; status to function as expected in first go
- (require 'smudge)
- :config
- (global-smudge-remote-mode));
-
-(with-eval-after-load 'evil
-    (evil-define-key 'normal 'global (kbd "<leader> u z") 'writeroom-mode)
-    (evil-define-key 'normal 'global (kbd "<leader> r") 'my/reload-emacs-config)
-    (evil-define-key 'normal 'global (kbd "<leader> t") 'my/toggle-vterm)
-    (evil-define-key 'normal 'global (kbd "<leader> s s") 'my/toggle-spotify-player)
-    (evil-define-key 'normal 'global
-    (kbd "SPC f n")  ; SPC is your leader
-    (lambda ()
-        (interactive)
-        (find-file "~/OneDrive/org/notes.org")))
-    (evil-define-key 'normal 'global
-    (kbd "SPC f w")  ; SPC is your leader
-    (lambda ()
-        (interactive)
-        (find-file "~/OneDrive/org/work.org")))
-    (evil-define-key 'normal 'global
-    (kbd "SPC f r")  ; SPC is your leader
-    (lambda ()
-        (interactive)
-        (find-file "~/.emacs.d/init.org")))
-    (evil-define-key 'normal 'global (kbd "<leader> w s") 'split-window-vertically)
-    (evil-define-key 'normal 'global (kbd "<leader> w v") 'split-window-horizontally)
-    (evil-define-key 'normal 'global (kbd "<leader> w q") 'delete-window))
-
-(evil-define-key 'normal 'global (kbd "<leader> e") 'treemacs)
