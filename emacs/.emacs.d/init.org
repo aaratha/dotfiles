@@ -1343,190 +1343,189 @@
   ;; operates. This setup configures `evil-mode' to enhance the editing
   ;; experience.
   (use-package evil
-  :ensure t
-  :straight t
-  :defer t
-  :hook
-  (after-init . evil-mode)
-  :init
-  (setq evil-want-integration t)      ;; Integrate `evil' with other Emacs features (optional as it's true by default).
-  (setq evil-want-keybinding nil)     ;; Disable default keybinding to set custom ones.
-  (setq evil-want-C-u-scroll t)       ;; Makes C-u scroll
-  (setq evil-want-C-u-delete t)       ;; Makes C-u delete on insert mode
-  :config
-  (evil-set-undo-system 'undo-tree)   ;; Uses the undo-tree package as the default undo system
+    :ensure t
+    :straight t
+    :defer t
+    :hook
+    (after-init . evil-mode)
+    :init
+    (setq evil-want-integration t)      ;; Integrate `evil' with other Emacs features (optional as it's true by default).
+    (setq evil-want-keybinding nil)     ;; Disable default keybinding to set custom ones.
+    (setq evil-want-C-u-scroll t)       ;; Makes C-u scroll
+    (setq evil-want-C-u-delete t)       ;; Makes C-u delete on insert mode
+    :config
+    (evil-mode 1)
+    (evil-set-undo-system 'undo-tree)   ;; Uses the undo-tree package as the default undo system
 
-  ;; Set the leader key to space for easier access to custom commands. (setq evil-want-leader t)
-  (setq evil-leader/in-all-states t)  ;; Make the leader key available in all states.
-  (setq evil-want-fine-undo t)        ;; Evil uses finer grain undoing steps
+    ;; Set the leader key to space for easier access to custom commands. (setq evil-want-leader t)
+    (setq evil-leader/in-all-states t)  ;; Make the leader key available in all states.
+    (setq evil-want-fine-undo t)        ;; Evil uses finer grain undoing steps
 
-  ;; Define the leader key as Space
-  (evil-set-leader 'normal (kbd "SPC"))
-  (evil-set-leader 'visual (kbd "SPC"))
+    ;; Define the leader key as Space
+    (evil-set-leader 'normal (kbd "SPC"))
+    (evil-set-leader 'visual (kbd "SPC"))
 
-  ;; Keybindings for searching and finding files.
-  (evil-define-key 'normal 'global (kbd "<leader> s f") 'consult-find)
-  (evil-define-key 'normal 'global (kbd "<leader> s g") 'consult-grep)
-  (evil-define-key 'normal 'global (kbd "<leader> s G") 'consult-git-grep)
-  (evil-define-key 'normal 'global (kbd "<leader> s r") 'consult-ripgrep)
-  (evil-define-key 'normal 'global (kbd "<leader> s h") 'consult-info)
-  (evil-define-key 'normal 'global (kbd "<leader> /") 'consult-line)
+    ;; Keybindings for searching and finding files.
+    (evil-define-key 'normal 'global (kbd "<leader> s f") 'consult-find)
+    (evil-define-key 'normal 'global (kbd "<leader> s g") 'consult-grep)
+    (evil-define-key 'normal 'global (kbd "<leader> s G") 'consult-git-grep)
+    (evil-define-key 'normal 'global (kbd "<leader> s r") 'consult-ripgrep)
+    (evil-define-key 'normal 'global (kbd "<leader> s h") 'consult-info)
+    (evil-define-key 'normal 'global (kbd "<leader> /") 'consult-line)
 
-  ;; Flymake navigation
-  (evil-define-key 'normal 'global (kbd "<leader> x x") 'consult-fycheck);; Gives you something like `trouble.nvim'
-  (evil-define-key 'normal 'global (kbd "] d") 'flycheck-goto-next-error) ;; Go to next Flymake error
-  (evil-define-key 'normal 'global (kbd "[ d") 'flycheck-goto-prev-error) ;; Go to previous Flymake error
+    ;; Flymake navigation
+    (evil-define-key 'normal 'global (kbd "<leader> x x") 'consult-fycheck);; Gives you something like `trouble.nvim'
+    (evil-define-key 'normal 'global (kbd "] d") 'flycheck-goto-next-error) ;; Go to next Flymake error
+    (evil-define-key 'normal 'global (kbd "[ d") 'flycheck-goto-prev-error) ;; Go to previous Flymake error
 
-  ;; Dired commands for file management
-  (evil-define-key 'normal 'global (kbd "<leader> x d") 'dired)
-  (evil-define-key 'normal 'global (kbd "<leader> x j") 'dired-jump)
-  (evil-define-key 'normal 'global (kbd "<leader> f f") 'find-file)
+    ;; Dired commands for file management
+    (evil-define-key 'normal 'global (kbd "<leader> x d") 'dired)
+    (evil-define-key 'normal 'global (kbd "<leader> x j") 'dired-jump)
+    (evil-define-key 'normal 'global (kbd "<leader> f f") 'find-file)
 
-  ;; Diff-HL navigation for version control
-  (evil-define-key 'normal 'global (kbd "] c") 'diff-hl-next-hunk) ;; Next diff hunk
-  (evil-define-key 'normal 'global (kbd "[ c") 'diff-hl-previous-hunk) ;; Previous diff hunk
+    ;; Diff-HL navigation for version control
+    (evil-define-key 'normal 'global (kbd "] c") 'diff-hl-next-hunk) ;; Next diff hunk
+    (evil-define-key 'normal 'global (kbd "[ c") 'diff-hl-previous-hunk) ;; Previous diff hunk
 
-  ;; NeoTree command for file exploration
-  ;; (evil-define-key 'normal 'global (kbd "<leader> e") 'neotree-toggle)
-  ;;(evil-define-key 'normal 'global (kbd "<leader> e d") 'dired-jump)
+    ;; NeoTree command for file exploration
+    ;; (evil-define-key 'normal 'global (kbd "<leader> e") 'neotree-toggle)
+    ;;(evil-define-key 'normal 'global (kbd "<leader> e d") 'dired-jump)
 
-  ;; Magit keybindings for Git integration
-  (evil-define-key 'normal 'global (kbd "<leader> g g") 'magit-status)      ;; Open Magit status
-  (evil-define-key 'normal 'global (kbd "<leader> g l") 'magit-log-current) ;; Show current log
-  (evil-define-key 'normal 'global (kbd "<leader> g d") 'magit-diff-buffer-file) ;; Show diff for the current file
-  (evil-define-key 'normal 'global (kbd "<leader> g D") 'diff-hl-show-hunk) ;; Show diff for a hunk
-  (evil-define-key 'normal 'global (kbd "<leader> g b") 'vc-annotate)       ;; Annotate buffer with version control info
+    ;; Magit keybindings for Git integration
+    (evil-define-key 'normal 'global (kbd "<leader> g g") 'magit-status)      ;; Open Magit status
+    (evil-define-key 'normal 'global (kbd "<leader> g l") 'magit-log-current) ;; Show current log
+    (evil-define-key 'normal 'global (kbd "<leader> g d") 'magit-diff-buffer-file) ;; Show diff for the current file
+    (evil-define-key 'normal 'global (kbd "<leader> g D") 'diff-hl-show-hunk) ;; Show diff for a hunk
+    (evil-define-key 'normal 'global (kbd "<leader> g b") 'vc-annotate)       ;; Annotate buffer with version control info
 
-  ;; Buffer management keybindings
-  (evil-define-key 'normal 'global (kbd "] b") 'switch-to-next-buffer) ;; Switch to next buffer
-  (evil-define-key 'normal 'global (kbd "[ b") 'switch-to-prev-buffer) ;; Switch to previous buffer
-  (evil-define-key 'normal 'global (kbd "<leader> b i") 'consult-buffer) ;; Open consult buffer list
-  (evil-define-key 'normal 'global (kbd "<leader> b b") 'ibuffer) ;; Open Ibuffer
-  (evil-define-key 'normal 'global (kbd "<leader> b d") 'kill-current-buffer) ;; Kill current buffer
-  (evil-define-key 'normal 'global (kbd "<leader> b k") 'kill-current-buffer) ;; Kill current buffer
-  (evil-define-key 'normal 'global (kbd "<leader> b x") 'kill-current-buffer) ;; Kill current buffer
-  (evil-define-key 'normal 'global (kbd "<leader> b s") 'save-buffer) ;; Save buffer
-  (evil-define-key 'normal 'global (kbd "<leader> b l") 'consult-buffer) ;; Consult buffer
-  (evil-define-key 'normal 'global (kbd "<leader>SPC") 'consult-buffer) ;; Consult buffer
+    ;; Buffer management keybindings
+    (evil-define-key 'normal 'global (kbd "] b") 'switch-to-next-buffer) ;; Switch to next buffer
+    (evil-define-key 'normal 'global (kbd "[ b") 'switch-to-prev-buffer) ;; Switch to previous buffer
+    (evil-define-key 'normal 'global (kbd "<leader> b i") 'consult-buffer) ;; Open consult buffer list
+    (evil-define-key 'normal 'global (kbd "<leader> b b") 'ibuffer) ;; Open Ibuffer
+    (evil-define-key 'normal 'global (kbd "<leader> b d") 'kill-current-buffer) ;; Kill current buffer
+    (evil-define-key 'normal 'global (kbd "<leader> b k") 'kill-current-buffer) ;; Kill current buffer
+    (evil-define-key 'normal 'global (kbd "<leader> b x") 'kill-current-buffer) ;; Kill current buffer
+    (evil-define-key 'normal 'global (kbd "<leader> b s") 'save-buffer) ;; Save buffer
+    (evil-define-key 'normal 'global (kbd "<leader> b l") 'consult-buffer) ;; Consult buffer
+    (evil-define-key 'normal 'global (kbd "<leader>SPC") 'consult-buffer) ;; Consult buffer
 
-  ;; Project management keybindings
-  (evil-define-key 'normal 'global (kbd "<leader> p b") 'consult-project-buffer) ;; Consult project buffer
-  (evil-define-key 'normal 'global (kbd "<leader> p p") 'project-switch-project) ;; Switch project
-  (evil-define-key 'normal 'global (kbd "<leader> p f") 'project-find-file) ;; Find file in project
-  (evil-define-key 'normal 'global (kbd "<leader> p g") 'project-find-regexp) ;; Find regexp in project
-  (evil-define-key 'normal 'global (kbd "<leader> p k") 'project-kill-buffers) ;; Kill project buffers
-  (evil-define-key 'normal 'global (kbd "<leader> p D") 'project-dired) ;; Dired for project
+    ;; Project management keybindings
+    (evil-define-key 'normal 'global (kbd "<leader> p b") 'consult-project-buffer) ;; Consult project buffer
+    (evil-define-key 'normal 'global (kbd "<leader> p p") 'project-switch-project) ;; Switch project
+    (evil-define-key 'normal 'global (kbd "<leader> p f") 'project-find-file) ;; Find file in project
+    (evil-define-key 'normal 'global (kbd "<leader> p g") 'project-find-regexp) ;; Find regexp in project
+    (evil-define-key 'normal 'global (kbd "<leader> p k") 'project-kill-buffers) ;; Kill project buffers
+    (evil-define-key 'normal 'global (kbd "<leader> p D") 'project-dired) ;; Dired for project
 
-  ;; Yank from kill ring
-  (evil-define-key 'normal 'global (kbd "P") 'consult-yank-from-kill-ring)
-  (evil-define-key 'normal 'global (kbd "<leader> P") 'consult-yank-from-kill-ring)
+    ;; Yank from kill ring
+    (evil-define-key 'normal 'global (kbd "P") 'consult-yank-from-kill-ring)
+    (evil-define-key 'normal 'global (kbd "<leader> P") 'consult-yank-from-kill-ring)
 
-  ;; Embark actions for contextual commands
-  (evil-define-key 'normal 'global (kbd "<leader> .") 'embark-act)
+    ;; Embark actions for contextual commands
+    (evil-define-key 'normal 'global (kbd "<leader> .") 'embark-act)
 
-  ;; Undo tree visualization
-  (evil-define-key 'normal 'global (kbd "<leader> u u") 'undo-tree-visualize)
+    ;; Undo tree visualization
+    (evil-define-key 'normal 'global (kbd "<leader> u u") 'undo-tree-visualize)
 
-  ;; Help keybindings
-  (evil-define-key 'normal 'global (kbd "<leader> h m") 'describe-mode) ;; Describe current mode
-  (evil-define-key 'normal 'global (kbd "<leader> h f") 'describe-function) ;; Describe function
-  (evil-define-key 'normal 'global (kbd "<leader> h v") 'describe-variable) ;; Describe variable
-  (evil-define-key 'normal 'global (kbd "<leader> h k") 'describe-key) ;; Describe key
+    ;; Help keybindings
+    (evil-define-key 'normal 'global (kbd "<leader> h m") 'describe-mode) ;; Describe current mode
+    (evil-define-key 'normal 'global (kbd "<leader> h f") 'describe-function) ;; Describe function
+    (evil-define-key 'normal 'global (kbd "<leader> h v") 'describe-variable) ;; Describe variable
+    (evil-define-key 'normal 'global (kbd "<leader> h k") 'describe-key) ;; Describe key
 
-  ;; Tab navigation
-  (evil-define-key 'normal 'global (kbd "] t") 'tab-next) ;; Go to next tab
-  (evil-define-key 'normal 'global (kbd "[ t") 'tab-previous) ;; Go to previous tab
-
-
-  ;; Custom example. Formatting with prettier tool.
-  (evil-define-key 'normal 'global (kbd "<leader> m p")
-                      (lambda ()
-                      (interactive)
-                      (shell-command (concat "prettier --write " (shell-quote-argument (buffer-file-name))))
-                      (revert-buffer t t t)))
-
-  ;; LSP commands keybindings
-  (evil-define-key 'normal lsp-mode-map
-                      ;; (kbd "gd") 'lsp-find-definition                ;; evil-collection already provides gd
-                      (kbd "gr") 'lsp-find-references                   ;; Finds LSP references
-                      (kbd "<leader> c a") 'lsp-execute-code-action     ;; Execute code actions
-                      (kbd "<leader> r n") 'lsp-rename                  ;; Rename symbol
-                      (kbd "gI") 'lsp-find-implementation               ;; Find implementation
-                      (kbd "<leader> l f") 'lsp-format-buffer)          ;; Format buffer via lsp
+    ;; Tab navigation
+    (evil-define-key 'normal 'global (kbd "] t") 'tab-next) ;; Go to next tab
+    (evil-define-key 'normal 'global (kbd "[ t") 'tab-previous) ;; Go to previous tab
 
 
-  (defun ek/lsp-describe-and-jump ()
+    ;; Custom example. Formatting with prettier tool.
+    (evil-define-key 'normal 'global (kbd "<leader> m p")
+      (lambda ()
+        (interactive)
+        (shell-command (concat "prettier --write " (shell-quote-argument (buffer-file-name))))
+        (revert-buffer t t t)))
+
+    ;; LSP commands keybindings
+    (with-eval-after-load 'lsp-mode
+      (evil-define-key 'normal lsp-mode-map
+        ;; (kbd "gd") 'lsp-find-definition                ;; evil-collection already provides gd
+        (kbd "gr") 'lsp-find-references                   ;; Finds LSP references
+        (kbd "<leader> c a") 'lsp-execute-code-action     ;; Execute code actions
+        (kbd "<leader> r n") 'lsp-rename                  ;; Rename symbol
+        (kbd "gI") 'lsp-find-implementation               ;; Find implementation
+        (kbd "<leader> l f") 'lsp-format-buffer))          ;; Format buffer via lsp
+
+
+    (defun ek/lsp-describe-and-jump ()
       "Show hover documentation and jump to *lsp-help* buffer."
       (interactive)
       (lsp-describe-thing-at-point)
       (let ((help-buffer "*lsp-help*"))
-      (when (get-buffer help-buffer)
+        (when (get-buffer help-buffer)
           (switch-to-buffer-other-window help-buffer))))
 
-  ;; Emacs 31 finaly brings us support for 'floating windows' (a.k.a. "child frames")
-  ;; to terminal Emacs. If you're still using 30, docs will be shown in a buffer at the
-  ;; inferior part of your frame.
-  (evil-define-key 'normal 'global (kbd "K")
+    ;; Emacs 31 finaly brings us support for 'floating windows' (a.k.a. "child frames")
+    ;; to terminal Emacs. If you're still using 30, docs will be shown in a buffer at the
+    ;; inferior part of your frame.
+    (evil-define-key 'normal 'global (kbd "K")
       (if (>= emacs-major-version 31)
           #'eldoc-box-help-at-point
-          #'ek/lsp-describe-and-jump))
+        #'ek/lsp-describe-and-jump))
 
-  ;; Commenting functionality for single and multiple lines
-  (evil-define-key 'normal 'global (kbd "gcc")
-                      (lambda ()
-                      (interactive)
-                      (if (not (use-region-p))
-                          (comment-or-uncomment-region (line-beginning-position) (line-end-position)))))
+    ;; Commenting functionality for single and multiple lines
+    (evil-define-key 'normal 'global (kbd "gcc")
+      (lambda ()
+        (interactive)
+        (if (not (use-region-p))
+            (comment-or-uncomment-region (line-beginning-position) (line-end-position)))))
 
-  (evil-define-key 'visual 'global (kbd "gc")
-                      (lambda ()
-                      (interactive)
-                      (if (use-region-p)
-                          (comment-or-uncomment-region (region-beginning) (region-end)))))
+    (evil-define-key 'visual 'global (kbd "gc")
+      (lambda ()
+        (interactive)
+        (if (use-region-p)
+            (comment-or-uncomment-region (region-beginning) (region-end)))))
 
-  (defun my/reload-emacs-config ()
-  "Reload Emacs configuration from `user-emacs-directory`."
-  (interactive)
-  (load-file (expand-file-name "init.el" user-emacs-directory))
-  (message "Emacs config reloaded."))
-
-  (evil-define-key 'normal 'global (kbd "<leader> u z") 'writeroom-mode)
-  (evil-define-key 'normal 'global (kbd "<leader> r") 'my/reload-emacs-config)
-  (evil-define-key 'normal 'global
-  (kbd "SPC f n")  ; SPC is your leader
-  (lambda ()
+    (defun my/reload-emacs-config ()
+      "Reload Emacs configuration from `user-emacs-directory`."
       (interactive)
-      (find-file "~/OneDrive/org/notes.org")))
-  (evil-define-key 'normal 'global
-  (kbd "SPC f w")  ; SPC is your leader
-  (lambda ()
-      (interactive)
-      (find-file "~/OneDrive/org/work.org")))
-  (evil-define-key 'normal 'global
-  (kbd "SPC f r")  ; SPC is your leader
-  (lambda ()
-      (interactive)
-      (find-file "~/.emacs.d/init.org")))
-  (evil-define-key 'normal 'global (kbd "<leader> o i") 'org-insert-structure-template)
-  (evil-define-key 'normal 'global (kbd "<leader> w s") 'evil-window-split)
-  (evil-define-key 'normal 'global (kbd "<leader> w v") 'evil-window-vsplit)
-  (evil-define-key 'normal 'global (kbd "<leader> w h") 'evil-window-left)
-  (evil-define-key 'normal 'global (kbd "<leader> w l") 'evil-window-right)
-  (evil-define-key 'normal 'global (kbd "<leader> w k") 'evil-window-up)
-  (evil-define-key 'normal 'global (kbd "<leader> w j") 'evil-window-down)
-  (evil-define-key 'normal 'global (kbd "<leader> w q") 'evil-window-delete)
+      (load-file (expand-file-name "init.el" user-emacs-directory))
+      (message "Emacs config reloaded."))
 
-  (evil-define-key 'normal 'global (kbd "<leader> e") 'treemacs)
+    (evil-define-key 'normal 'global (kbd "<leader> u z") 'writeroom-mode)
+    (evil-define-key 'normal 'global (kbd "<leader> r") 'my/reload-emacs-config)
+    (evil-define-key 'normal 'global
+      (kbd "SPC f n")  ; SPC is your leader
+      (lambda ()
+        (interactive)
+        (find-file "~/OneDrive/org/notes.org")))
+    (evil-define-key 'normal 'global
+      (kbd "SPC f w")  ; SPC is your leader
+      (lambda ()
+        (interactive)
+        (find-file "~/OneDrive/org/work.org")))
+    (evil-define-key 'normal 'global
+      (kbd "SPC f r")  ; SPC is your leader
+      (lambda ()
+        (interactive)
+        (find-file "~/.emacs.d/init.org")))
+    (evil-define-key 'normal 'global (kbd "<leader> o i") 'org-insert-structure-template)
+    (evil-define-key 'normal 'global (kbd "<leader> w s") 'evil-window-split)
+    (evil-define-key 'normal 'global (kbd "<leader> w v") 'evil-window-vsplit)
+    (evil-define-key 'normal 'global (kbd "<leader> w h") 'evil-window-left)
+    (evil-define-key 'normal 'global (kbd "<leader> w l") 'evil-window-right)
+    (evil-define-key 'normal 'global (kbd "<leader> w k") 'evil-window-up)
+    (evil-define-key 'normal 'global (kbd "<leader> w j") 'evil-window-down)
+    (evil-define-key 'normal 'global (kbd "<leader> w q") 'evil-window-delete)
 
-  (evil-define-key 'normal 'global (kbd "M--") 'text-scale-decrease)
-  (evil-define-key 'normal 'global (kbd "M-=") 'text-scale-increase)
+    (evil-define-key 'normal 'global (kbd "<leader> e") 'treemacs)
 
-  (evil-define-key 'normal 'global (kbd "<leader> t") 'my/vterm-toggle)
+    (evil-define-key 'normal 'global (kbd "M--") 'text-scale-decrease)
+    (evil-define-key 'normal 'global (kbd "M-=") 'text-scale-increase)
 
-  (evil-define-key 'normal 'global (kbd "<leader> u m") 'mixed-pitch-mode)
+    (evil-define-key 'normal 'global (kbd "<leader> t") 'my/vterm-toggle)
 
-  ;; Enable evil mode
-  (evil-mode 1))
+    (evil-define-key 'normal 'global (kbd "<leader> u m") 'mixed-pitch-mode))
 #+end_src
 **** Evil Collection
 #+begin_src emacs-lisp
@@ -1698,6 +1697,15 @@
 #+begin_src emacs-lisp
   (use-package auctex
     :ensure t)
+#+end_src
+*** Copilot
+#+begin_src emacs-lisp
+  (use-package copilot
+    :ensure t
+    :hook ((prog-mode cmake-ts-mode) . copilot-mode)
+    :bind (("C-<tab>" . copilot-complete)
+           :map copilot-completion-map
+           ("<tab>" . 'copilot-accept-completion)))
 #+end_src
 ** Emacs-kick 
 #+begin_src emacs-lisp
