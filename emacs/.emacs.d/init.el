@@ -239,6 +239,10 @@
     (setq mac-command-modifier 'meta)  ;; Set the Command key to act as the Meta key.
     (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font" :height 130))
 
+(set-face-attribute 'variable-pitch nil
+                      :family "EB Garamond"
+                      :height 200)
+
 ;; Save manual customizations to a separate file instead of cluttering `init.el'.
 ;; You can M-x customize, M-x customize-group, or M-x customize-themes, etc.
 ;; The saves you do manually using the Emacs interface would overwrite this file.
@@ -320,7 +324,7 @@
 
     ;; Configuration for displaying various diagnostic buffers on
     ;; bottom 25%:
-    ("\\*\\(Flymake diagnostics\\|xref\\|ivy\\|Swiper\\|Completions\\)"
+    ("\\*\\(Flycheck diagnostics\\|xref\\|ivy\\|Swiper\\|Completions\\)"
     (display-buffer-in-side-window)
     (window-height . 0.25)
     (side . bottom)
@@ -440,18 +444,22 @@
 (global-eldoc-mode))
 
 ;;; FLYMAKE
-;; Flymake is an on-the-fly syntax checking extension that provides real-time feedback
-;; about errors and warnings in your code as you write. This can greatly enhance your
-;; coding experience by catching issues early. The configuration below activates
-;; Flymake mode in programming buffers.
-(use-package flymake
-:ensure nil          ;; This is built-in, no need to fetch it.
-:defer t
-:hook (prog-mode . flymake-mode)
-:custom
-(flymake-margin-indicators-string
-    '((error "!»" compilation-error) (warning "»" compilation-warning)
-    (note "»" compilation-info))))
+  ;; Flymake is an on-the-fly syntax checking extension that provides real-time feedback
+  ;; about errors and warnings in your code as you write. This can greatly enhance your
+  ;; coding experience by catching issues early. The configuration below activates
+  ;; Flymake mode in programming buffers.
+;;   (use-package flymake
+;;   :ensure nil          ;; This is built-in, no need to fetch it.
+;;   :defer t
+;;   :hook (prog-mode . flymake-mode)
+;;   :custom
+;;   (flymake-margin-indicators-string
+;;       '((error "!»" compilation-error) (warning "»" compilation-warning)
+;;       (note "»" compilation-info))))
+
+;; (use-package flymake-ruff
+;;   :ensure t
+;;   :hook (python-mode . flymake-ruff-load))
 
 ;;; ORG-MODE
 ;; Org-mode is a powerful system for organizing and managing your notes,
@@ -499,10 +507,15 @@
                       'org-babel-tangle
                       nil 'local)))
 
-  (use-package org-superstar :ensure t)
-  (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1)))
+  (add-hook 'org-mode-hook
+          (lambda ()
+              (org-superstar-mode 1)
+              (visual-line-mode 1)))
+
+  (setq org-hide-emphasis-markers t)
 
   (setq org-agenda-files (quote ("~/OneDrive/org")))
+  
 :config
 ;; Bind it to TAB in org-mode
 ;;(define-key org-mode-map (kbd "<tab>") nil)
@@ -572,6 +585,13 @@
                     "  ")
                 cand))))
 
+(use-package vertico
+  :ensure t
+  :custom
+  (vertico-posfram-parameters
+    '((left-fringe . 8)
+      (right-fringe . 8))))
+
 ;;; CONSULT
 ;; Consult provides powerful completion and narrowing commands for Emacs.
 ;; It integrates well with other completion frameworks like Vertico, enabling
@@ -588,6 +608,9 @@
 ;; Use Consult for xref locations with a preview feature.
 (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref))
+
+(use-package consult-flycheck
+  :ensure t)
 
 ;;; EMBARK
 ;; Embark provides a powerful contextual action menu for Emacs, allowing
@@ -676,14 +699,73 @@
   (set-face-attribute 'treemacs-window-background-face nil
     :background "#000a0f"))
 
-(add-to-list 'default-frame-alist '(undecorated-round . t))
-
-(set-frame-parameter nil 'alpha-background 0.5) 
-(set-frame-parameter nil 'ns-background-blur 40)
-
 (use-package writeroom-mode :ensure t)
 (setq writeroom-global-effects (delq 'writeroom-set-alpha writeroom-global-effects))
 (setq writeroom-global-effects (delq 'writeroom-set-fullscreen writeroom-global-effects))
+
+(use-package golden-ratio
+    :ensure t
+    :hook (after-init . golden-ratio-mode)
+    :init
+    (setq golden-ratio-extra-commands
+        (append golden-ratio-extra-commands
+        '(evil-window-left
+            evil-window-right
+            evil-window-up
+            evil-window-down
+            buf-move-left
+            buf-move-right
+            buf-move-up
+            buf-move-down
+            window-number-select
+            select-window
+            select-window-1
+            select-window-2
+            select-window-3
+            select-window-4
+            select-window-5
+            select-window-6
+            select-window-7
+            select-window-8
+            select-window-9)))
+    :custom
+    (golden-ratio-exclude-modes '(occur-mode))
+    :config
+    (add-hook 'doom-switch-window-hook #'golden-ratio))
+
+(use-package mixed-pitch
+  :ensure t
+  :custom (mixed-pitch-fixed-pitch-faces
+           '(org-code
+               org-block
+               org-block-begin-line
+               org-block-end-line
+               org-table
+               org-verbatim
+               org-special-keyword
+               org-meta-line
+               org-checkbox
+               org-document-info-keyword
+               ;; org-level-1
+               ;; org-level-2
+               ;; org-level-3
+               ;; org-level-4
+               ;; org-level-5
+               ;; org-level-6
+               ;; org-level-7
+               ;; org-level-8
+               font-lock-comment-face))
+  :init (setq mixed-pitch-set-height t))
+
+(use-package comment-dwim-2
+  :ensure t
+  :bind ("M-;" . comment-dwim-2)
+        ("g c" . comment-dwim-2))
+
+(use-package flycheck
+  :ensure t
+  :config
+  (add-hook 'after-init-hook #'global-flycheck-mode))
 
 ;;; MARGINALIA
 ;; Marginalia enhances the completion experience in Emacs by adding
@@ -842,6 +924,43 @@
 :init
 (setq lsp-tailwindcss-add-on-mode t))
 
+(use-package lsp-pyright
+:ensure t
+:custom (lsp-pyright-langserver-command "pyright") ;; or basedpyright
+:hook (python-mode . (lambda ()
+                        (require 'lsp-pyright)
+                        (lsp))))  ; or lsp-deferred
+
+(use-package lsp-java
+:ensure t
+:init (add-hook 'java-mode-hook #'lsp))
+
+(use-package web-mode
+  :ensure t
+  :mode
+      (("\\.phtml\\'" . web-mode)
+      ("\\.php\\'" . web-mode)
+      ("\\.tpl\\'" . web-mode)
+      ("\\.[agj]sp\\'" . web-mode)
+      ("\\.as[cp]x\\'" . web-mode)
+      ("\\.erb\\'" . web-mode)
+      ("\\.mustache\\'" . web-mode)
+      ("\\.jsx\\'" . web-mode)
+      ("\\.css\\'" . web-mode)
+      ("\\.djhtml\\'" . web-mode)))
+
+(use-package yasnippet
+:ensure t
+:init
+;; Turn on yas after emacs starts up
+(yas-global-mode))
+
+(use-package emmet-mode
+:ensure t
+:hook (web-mode . emmet-mode)
+:config
+(setq emmet-indent-after-insert nil
+      emmet-indentation 2))
 
 ;;; ELDOC-BOX
 ;; eldoc-box enhances the default Eldoc experience by displaying documentation in a popup box,
@@ -852,7 +971,6 @@
 :ensure t
 :straight t
 :defer t)
-
 
 ;;; DIFF-HL
 ;; The `diff-hl' package provides visual indicators for version control changes
@@ -993,8 +1111,8 @@
 (setq pulsar-face 'evil-ex-lazy-highlight)
 
 (add-to-list 'pulsar-pulse-functions 'evil-scroll-down)
-(add-to-list 'pulsar-pulse-functions 'flymake-goto-next-error)
-(add-to-list 'pulsar-pulse-functions 'flymake-goto-prev-error)
+(add-to-list 'pulsar-pulse-functions 'flycheck-goto-next-error)
+(add-to-list 'pulsar-pulse-functions 'flycheck-goto-prev-error)
 (add-to-list 'pulsar-pulse-functions 'evil-yank)
 (add-to-list 'pulsar-pulse-functions 'evil-yank-line)
 (add-to-list 'pulsar-pulse-functions 'evil-delete)
@@ -1002,6 +1120,10 @@
 (add-to-list 'pulsar-pulse-functions 'evil-jump-item)
 (add-to-list 'pulsar-pulse-functions 'diff-hl-next-hunk)
 (add-to-list 'pulsar-pulse-functions 'diff-hl-previous-hunk))
+
+(use-package webkit-color-picker
+:ensure t
+:bind (("C-c C-p" . webkit-color-picker-show)))
 
 ;;; CATPPUCCIN THEME
   ;; The `catppuccin-theme' package provides a visually pleasing color theme
@@ -1138,9 +1260,9 @@
 (evil-define-key 'normal 'global (kbd "<leader> /") 'consult-line)
 
 ;; Flymake navigation
-(evil-define-key 'normal 'global (kbd "<leader> x x") 'consult-flymake);; Gives you something like `trouble.nvim'
-(evil-define-key 'normal 'global (kbd "] d") 'flymake-goto-next-error) ;; Go to next Flymake error
-(evil-define-key 'normal 'global (kbd "[ d") 'flymake-goto-prev-error) ;; Go to previous Flymake error
+(evil-define-key 'normal 'global (kbd "<leader> x x") 'consult-fycheck);; Gives you something like `trouble.nvim'
+(evil-define-key 'normal 'global (kbd "] d") 'flycheck-goto-next-error) ;; Go to next Flymake error
+(evil-define-key 'normal 'global (kbd "[ d") 'flycheck-goto-prev-error) ;; Go to previous Flymake error
 
 ;; Dired commands for file management
 (evil-define-key 'normal 'global (kbd "<leader> x d") 'dired)
@@ -1188,9 +1310,6 @@
 
 ;; Embark actions for contextual commands
 (evil-define-key 'normal 'global (kbd "<leader> .") 'embark-act)
-
-;; Undo tree visualization
-(evil-define-key 'normal 'global (kbd "<leader> u u") 'undo-tree-visualize)
 
 ;; Help keybindings
 (evil-define-key 'normal 'global (kbd "<leader> h m") 'describe-mode) ;; Describe current mode
@@ -1255,7 +1374,6 @@
 (load-file (expand-file-name "init.el" user-emacs-directory))
 (message "Emacs config reloaded."))
 
-(evil-define-key 'normal 'global (kbd "<leader> u z") 'writeroom-mode)
 (evil-define-key 'normal 'global (kbd "<leader> r") 'my/reload-emacs-config)
 (evil-define-key 'normal 'global
 (kbd "SPC f n")  ; SPC is your leader
@@ -1272,6 +1390,7 @@
 (lambda ()
     (interactive)
     (find-file "~/.emacs.d/init.org")))
+(evil-define-key 'normal 'global (kbd "<leader> o i") 'org-insert-structure-template)
 (evil-define-key 'normal 'global (kbd "<leader> w s") 'evil-window-split)
 (evil-define-key 'normal 'global (kbd "<leader> w v") 'evil-window-vsplit)
 (evil-define-key 'normal 'global (kbd "<leader> w h") 'evil-window-left)
@@ -1281,6 +1400,18 @@
 (evil-define-key 'normal 'global (kbd "<leader> w q") 'evil-window-delete)
 
 (evil-define-key 'normal 'global (kbd "<leader> e") 'treemacs)
+
+(evil-define-key 'normal 'global (kbd "M--") 'text-scale-decrease)
+(evil-define-key 'normal 'global (kbd "M-=") 'text-scale-increase)
+
+(evil-define-key 'normal 'global (kbd "<leader> t") 'my/vterm-toggle)
+
+(defvar my/leader-u-map (make-sparse-keymap)
+  "Keymap for <leader> u bindings.")
+(define-key my/leader-u-map (kbd "u") 'undo-tree-visualize)
+(define-key my/leader-u-map (kbd "z") 'writeroom-mode)
+(define-key my/leader-u-map (kbd "m") 'mixed-pitch-mode)
+(evil-define-key 'normal 'global (kbd "<leader> u") my/leader-u-map)
 
 ;; Enable evil mode
 (evil-mode 1))
@@ -1330,80 +1461,114 @@
 :config
 (global-evil-matchit-mode 1))
 
-;; (use-package counsel-spotify :ensure t)
-(use-package smudge
- :straight (smudge :type git :host github :repo "danielfm/smudge")
- :bind ("C-c ." . smudge-command-map)
- :custom
- (smudge-oauth2-client-secret "717c80886e244b4ca8cf2bd4405b0a94")
- (smudge-oauth2-client-id "214deedb9d4142a99c5707c6c32e52e4")
- (setq smudge-transport 'connect)
- (smudge-player-use-transient-map t)
- :init
- ;; hack to ensure smudge-command-map load for modeline 
- ;; status to function as expected in first go
- (require 'smudge)
- :config
- (global-smudge-remote-mode));
+;; can be a list of keys or recipients (e-mail addresses) as well
+      ;;     (use-package smudge
+      ;;      :straight (smudge :type git :host github :repo "danielfm/smudge")
+      ;;      :bind ("C-c ." . smudge-command-map)
+      ;;      :custom
+      ;;      (smudge-oauth2-client-secret "717c80886e244b4ca8cf2bd4405b0a94")
+      ;;      (smudge-oauth2-client-id "214deedb9d4142a99c5707c6c32e52e4")
+      ;;      (smudge-player-use-transient-map t)
+      ;;      :init
+      ;;      ;; hack to ensure smudge-command-map load for modeline 
+      ;;      ;; status to function as expected in first go
+      ;;      (setq plstore-encrypt-to "B6E8E114A64887D599893113706854856E58412B")
+      ;;      (setq smudge-transport 'connect)
+      ;;      (evil-define-key 'normal 'global (kbd "<leader> s s") 'smudge-my-library)
+      ;;      (require 'smudge)
+      ;;      :config
+      ;;      (global-smudge-remote-mode))
+
+(use-package spotifyd
+    :load-path "/Users/aaratha/projects/spotifyd"
+    :commands (spotifyd-authenticate
+               spotifyd-liked-songs
+               spotifyd-play
+               spotifyd-pause
+               spotifyd-play-pause
+               spotifyd-ui)
+    :custom
+    (spotifyd-client-id "7e9b0a1d9a1f4f539c7835a457c1d9b5")
+    (spotifyd-redirect-uri "http://127.0.0.1:8080/callback")
+    :config
+    (evil-define-key 'normal 'global (kbd "<leader> d l") 'spotifyd-liked-songs)
+    (evil-define-key 'normal 'global (kbd "<leader> d p") 'spotifyd-play-pause)
+    (evil-define-key 'normal 'global (kbd "<leader> d n") 'spotifyd-next)
+    (evil-define-key 'normal 'global (kbd "<leader> d N") 'spotifyd-previous)
+    (evil-define-key 'normal 'global (kbd "<leader> d q") 'spotifyd-quit)
+    (evil-define-key 'normal 'global (kbd "<leader> d s") 'spotifyd-srt)
+    (evil-define-key 'normal 'global (kbd "<leader> d u") 'spotifyd-ui)
+    (evil-define-key 'normal 'global (kbd "<leader> d d") 'spotifyd-devices))
 
 (use-package vterm
     :ensure t
     :init
-      (defvar my/toggle-vterm-buffer-name "*scratch-vterm*"
-      "Name of the persistent vterm buffer for toggling.")
-      (defvar my/toggle-vterm-last-buffer nil
-      "Holds the buffer we were in before switching to the vterm.")
-      (defun my/toggle-vterm ()
-      "Toggle a persistent vterm buffer in full-frame."
-      (interactive)
-      (let ((buf (get-buffer-create my/toggle-vterm-buffer-name)))
-      ;; If buffer doesn't have a vterm process, start one
-      (unless (get-buffer-process buf)
-      (with-current-buffer buf
-          (vterm-mode)))
-      ;; If we're already in the vterm buffer, switch back
-      (if (eq (current-buffer) buf)
-          (when (and my/toggle-vterm-last-buffer
-                      (buffer-live-p my/toggle-vterm-last-buffer))
-          (switch-to-buffer my/toggle-vterm-last-buffer))
-      ;; Otherwise, store current buffer and switch to vterm
-      (setq my/toggle-vterm-last-buffer (current-buffer))
-      (switch-to-buffer buf)
-      ;; Make it full-frame
-      (delete-other-windows))))
+      (defvar my/vterm-popup-buffer-name "*vterm-popup*")
 
-      ;; Spotify player keybind
-      (defvar my/spotify-vterm-buffer "*spotify-player*"
-      "Persistent vterm buffer running spotify_player.")
-      (defvar my/spotify-last-buffer nil
-      "Buffer active before switching to Spotify.")
-      (defun my/toggle-spotify-player ()
-      "Toggle spotify_player in a dedicated persistent vterm."
-      (interactive)
-      (let ((buf (get-buffer my/spotify-vterm-buffer)))
-      ;; If already in Spotify → go back
-      (if (eq (current-buffer) buf)
-          (when (and my/spotify-last-buffer
-                      (buffer-live-p my/spotify-last-buffer))
-              (switch-to-buffer my/spotify-last-buffer))
-          ;; Otherwise → store current buffer and switch to Spotify
-          (setq my/spotify-last-buffer (current-buffer))
-          ;; Create vterm buffer if needed
-          (unless buf
-          (setq buf (get-buffer-create my/spotify-vterm-buffer))
-          (with-current-buffer buf
-              (vterm-mode)
-              ;; Run spotify_player once
-              (vterm-send-string "spotify_player")
-              (vterm-send-return)))
-          ;; Show full-frame
-          (switch-to-buffer buf)
-          (delete-other-windows))))
+      (defun my/vterm--project-root ()
+      (or (when-let ((proj (project-current)))
+              (project-root proj))
+          default-directory))
 
-      (evil-define-key 'normal 'global (kbd "<leader> t") 'my/toggle-vterm)
-      (evil-define-key 'normal 'global (kbd "<leader> s s") 'my/toggle-spotify-player)
+
+      (defun my/vterm-toggle (&optional arg)
+      "Toggle a vterm popup at project root.
+
+      With prefix ARG, kill and recreate the vterm buffer."
+      (interactive "P")
+      (let* ((default-directory (my/vterm--project-root))
+              (buffer-name
+              (format "*vterm-popup:%s*"
+                      (abbreviate-file-name default-directory)))
+              (buffer (get-buffer buffer-name))
+              (window (get-buffer-window buffer-name)))
+          ;; Recreate if requested
+          (when (and arg (buffer-live-p buffer))
+          (when-let (proc (get-buffer-process buffer))
+              (delete-process proc))
+          (kill-buffer buffer)
+          (setq buffer nil
+                  window nil))
+
+          ;; Toggle behavior
+          (if (window-live-p window)
+              (delete-window window)
+          (let ((buffer (or buffer
+                              (with-current-buffer
+                                  (get-buffer-create buffer-name)
+                              (vterm-mode)
+                              (current-buffer)))))
+              (pop-to-buffer
+              buffer
+              '((display-buffer-reuse-window
+                  display-buffer-in-side-window)
+              (side . bottom)
+              (slot . -1)
+              (window-height . 0.3)))))))
+
+      (defvar my/vterm-counter 0
+        "Counter to generate unique vterm buffer names.")
+      
+      (defun my/vterm-here ()
+          "Open a new vterm buffer in the current window, numbered sequentially."
+          (interactive)
+          ;; Increment counter for unique name
+          (setq my/vterm-counter (1+ my/vterm-counter))
+          (let* ((buffer-name (format "*vterm-%d*" my/vterm-counter))
+              (default-directory default-directory)
+              (buffer (get-buffer-create buffer-name)))
+          ;; Start vterm mode if needed
+          (with-current-buffer buffer
+              (unless (eq major-mode 'vterm-mode)
+              (vterm-mode)))
+          ;; Switch to it in the current window
+          (switch-to-buffer buffer)))
+
     :config
     (setq vterm-timer-delay 0.01))
+
+(use-package auctex
+  :ensure t)
 
 ;;; UTILITARY FUNCTION TO INSTALL EMACS-KICK
 (defun ek/first-install ()
@@ -1423,3 +1588,14 @@
 (kill-emacs))                                      ;; Close Emacs after installation is complete.
 
 (provide 'init)
+
+(add-to-list 'default-frame-alist '(undecorated-round . t))
+
+(set-frame-parameter nil 'alpha-background 0.5) 
+(set-frame-parameter nil 'ns-background-blur 30)
+
+(set-frame-parameter nil 'ns-alpha-elements '(ns-alpha-all))
+
+(setq mac-command-modifier 'meta)
+
+(setq text-scale-mode-step 1.1)
