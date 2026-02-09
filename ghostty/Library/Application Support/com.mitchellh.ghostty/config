@@ -47,7 +47,7 @@ auto-update-channel = tip
 font-family = "JetBrains Mono"
 font-size = 14
 
-background-opacity = 0.7
+background-opacity = 0.84
 
 background-blur-radius = 40
 
