@@ -552,6 +552,27 @@
 (after-init . which-key-mode)) ;; Enable which-key mode after initialization.
 (setq which-key-idle-delay 0.3) ; default is 1.0
 
+(setq remote-file-name-inhibit-locks t
+      tramp-use-scp-direct-remote-copying t
+      remote-file-name-inhibit-auto-save-visited t)
+
+(setq tramp-copy-size-limit (* 1024 1024) ;; 1MB
+      tramp-verbose 2)
+
+(connection-local-set-profile-variables
+ 'remote-direct-async-process
+ '((tramp-direct-async-process . t)))
+
+(connection-local-set-profiles
+ '(:application tramp :protocol "scp")
+ 'remote-direct-async-process)
+
+(setq magit-tramp-pipe-stty-settings 'pty)
+
+(with-eval-after-load 'tramp
+  (with-eval-after-load 'compile
+    (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
+
 ;;; ==================== EXTERNAL PACKAGES ====================
 ;;
 ;; From this point onward, all configurations will be for third-party packages
@@ -980,6 +1001,38 @@
 (use-package qml-mode
   :ensure t
   :hook (qml-mode . lsp-deferred)) ; Enable lsp-mode when opening .qml files
+
+(with-eval-after-load 'lsp-mode
+  (defun lsp-booster--advice-json-parse (old-fn &rest args)
+    "Try to parse bytecode instead of json."
+    (or
+     (when (equal (following-char) ?#)
+       (let ((bytecode (read (current-buffer))))
+         (when (byte-code-function-p bytecode)
+           (funcall bytecode))))
+     (apply old-fn args)))
+  (advice-add (if (progn (require 'json)
+                         (fboundp 'json-parse-buffer))
+                  'json-parse-buffer
+                'json-read)
+              :around
+              #'lsp-booster--advice-json-parse)
+
+  (defun lsp-booster--advice-final-command (old-fn cmd &optional test?)
+    "Prepend emacs-lsp-booster command to lsp CMD."
+    (let ((orig-result (funcall old-fn cmd test?)))
+      (if (and (not test?)                             ;; for check lsp-server-present?
+               (not (file-remote-p default-directory)) ;; see lsp-resolve-final-command, it would add extra shell wrapper
+               lsp-use-plists
+               (not (functionp 'json-rpc-connection))  ;; native json-rpc
+               (executable-find "emacs-lsp-booster"))
+          (progn
+            (when-let ((command-from-exec-path (executable-find (car orig-result))))  ;; resolve command from exec-path (in case not found in $PATH)
+              (setcar orig-result command-from-exec-path))
+            (message "Using emacs-lsp-booster for %s!" orig-result)
+            (cons "emacs-lsp-booster" orig-result))
+        orig-result)))
+  (advice-add 'lsp-resolve-final-command :around #'lsp-booster--advice-final-command))
 
 ;;; ELDOC-BOX
 ;; eldoc-box enhances the default Eldoc experience by displaying documentation in a popup box,
@@ -1621,6 +1674,17 @@
          :map copilot-completion-map
          ("<tab>" . 'copilot-accept-completion)))
 
+(add-to-list 'default-frame-alist '(undecorated-round . t))
+
+(set-frame-parameter nil 'alpha-background 0.6) 
+(set-frame-parameter nil 'ns-background-blur 30)
+
+(set-frame-parameter nil 'ns-alpha-elements '(ns-alpha-all))
+
+(setq mac-command-modifier 'meta)
+
+(setq text-scale-mode-step 1.1)
+
 ;;; UTILITARY FUNCTION TO INSTALL EMACS-KICK
 (defun ek/first-install ()
 "Install tree-sitter grammars and compile packages on first run..."
@@ -1639,14 +1703,3 @@
 (kill-emacs))                                      ;; Close Emacs after installation is complete.
 
 (provide 'init)
-
-(add-to-list 'default-frame-alist '(undecorated-round . t))
-
-(set-frame-parameter nil 'alpha-background 0.6) 
-(set-frame-parameter nil 'ns-background-blur 30)
-
-(set-frame-parameter nil 'ns-alpha-elements '(ns-alpha-all))
-
-(setq mac-command-modifier 'meta)
-
-(setq text-scale-mode-step 1.1)
