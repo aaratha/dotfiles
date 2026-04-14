@@ -5,7 +5,9 @@
 ;; Early initialization file to set LSP to use plists for better performance.
 
 ;;; Code:
-(setenv "LSP_USE_PLISTS" "true")
+
+;; Set LSP to use plists for better performance.
+;;(setenv "LSP_USE_PLISTS" "true")
 
 
 
