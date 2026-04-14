@@ -239,9 +239,11 @@
     (setq mac-command-modifier 'meta)  ;; Set the Command key to act as the Meta key.
     (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font" :height 130))
 
+
+(set-face-attribute 'fixed-pitch nil :family "JetBrainsMono Nerd Font")
+
 (set-face-attribute 'variable-pitch nil
-                      :family "EB Garamond"
-                      :height 200)
+                      :family "JetBrainsMono Nerd Font")
 
 ;; Save manual customizations to a separate file instead of cluttering `init.el'.
 ;; You can M-x customize, M-x customize-group, or M-x customize-themes, etc.
@@ -470,6 +472,18 @@
 (use-package org
 :ensure nil     ;; This is built-in, no need to fetch it.
 :init
+(defun my/apply-org-heading-faces (&rest _)
+  "Keep Org headings monospace and scaled by level."
+  (set-face-attribute 'org-document-title nil :inherit 'fixed-pitch :weight 'bold :height 1.5)
+  (set-face-attribute 'org-level-1 nil :inherit 'fixed-pitch :weight 'bold :height 1.35)
+  (set-face-attribute 'org-level-2 nil :inherit 'fixed-pitch :weight 'bold :height 1.25)
+  (set-face-attribute 'org-level-3 nil :inherit 'fixed-pitch :weight 'semi-bold :height 1.15)
+  (set-face-attribute 'org-level-4 nil :inherit 'fixed-pitch :weight 'semi-bold :height 1.1)
+  (set-face-attribute 'org-level-5 nil :inherit 'fixed-pitch :weight 'normal :height 1.0)
+  (set-face-attribute 'org-level-6 nil :inherit 'fixed-pitch :weight 'normal :height 1.0)
+  (set-face-attribute 'org-level-7 nil :inherit 'fixed-pitch :weight 'normal :height 1.0)
+  (set-face-attribute 'org-level-8 nil :inherit 'fixed-pitch :weight 'normal :height 1.0))
+
 (defun +org-cycle-only-current-subtree-h (&optional arg)
   "Toggle the local fold at the point, and no deeper.
   `org-cycle's standard behavior is to cycle between three levels: collapsed,
@@ -509,15 +523,21 @@
 
   (add-hook 'org-mode-hook
           (lambda ()
-              (org-superstar-mode 1)
+              ;; (org-superstar-mode 1)
               (visual-line-mode 1)
               (visual-wrap-prefix-mode 1)
+              (org-modern-mode 1)
               (org-latex-preview 1)
               (org-fragtog-mode 1)))
 
   (setq org-hide-emphasis-markers t)
 
-  (setq org-superstar-leading-bullet ?\s)
+  ;;(setq org-pretty-entities t)
+
+  ;; (setq org-superstar-leading-bullet ?\s)
+
+  ;; (setq org-superstar-prettify-item-bullets t)
+  ;; (setq org-superstar-item-bullet-alist '((?+ . ?▶) (?* . ?◇) (?- . ?-)))
 
   (setq org-format-latex-options
     (plist-put org-format-latex-options :scale 1.7))
@@ -525,10 +545,13 @@
     (plist-put org-format-latex-options :background "Transparent"))
 
 
+  (setq org-cycle-emulate-tab 'white)
 
   (setq org-agenda-files (quote ("~/OneDrive/org")))
 
 :config
+(my/apply-org-heading-faces)
+(advice-add 'load-theme :after #'my/apply-org-heading-faces)
 ;; Bind it to TAB in org-mode
 ;;(define-key org-mode-map (kbd "<tab>") nil)
 ;;(org-defkey org-mode-map \[(tab)\] '+org-cycle-only-current-subtree-h)
@@ -572,6 +595,31 @@
 (with-eval-after-load 'tramp
   (with-eval-after-load 'compile
     (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
+
+;; LSP-Mode fix
+;; (with-eval-after-load 'lsp-mode
+;;   (defun my/tramp-disable-direct-async-for-lsp (orig &rest args)
+;;     (let ((tramp-direct-async-process t))
+;;       (cl-letf (((symbol-function 'tramp-direct-async-process-p)
+;;                  (lambda (&rest _) nil)))
+;;         (apply orig args))))
+;;   (advice-add 'lsp-stdio-connection :around #'my/tramp-disable-direct-async-for-lsp))
+(defun $lsp-unless-remote ()
+  (if (file-remote-p buffer-file-name)
+      (progn (eldoc-mode -1)
+             (setq-local completion-at-point-functions nil))
+    (lsp)))
+
+(use-package eglot
+  :ensure t
+  :hook ((c-mode . eglot-ensure)
+         (c++-mode . eglot-ensure)
+         (c-ts-mode . eglot-ensure)
+         (c++-ts-mode . eglot-ensure)
+         (c-or-c++-mode . eglot-ensure)
+         (tsx-ts-mode . eglot-ensure)
+         (js-mode . eglot-ensure)
+         (js-ts-mode . eglot-ensure)))
 
 ;;; ==================== EXTERNAL PACKAGES ====================
 ;;
@@ -738,7 +786,7 @@
   (setq writeroom-global-effects (delq 'writeroom-set-alpha writeroom-global-effects))
   (setq writeroom-global-effects (delq 'writeroom-set-fullscreen writeroom-global-effects))
   :custom
-  (writeroom-width 60))
+  (writeroom-width 50))
 
 (use-package zoom
   :ensure t
@@ -746,29 +794,30 @@
   :custom
   (zoom-size '(0.618 . 0.618)))
 
-(use-package mixed-pitch
+(use-package org-modern
   :ensure t
-  :custom (mixed-pitch-fixed-pitch-faces
-           '(org-code
-               org-block
-               org-block-begin-line
-               org-block-end-line
-               org-table
-               org-verbatim
-               org-special-keyword
-               org-meta-line
-               org-checkbox
-               org-document-info-keyword
-               ;; org-level-1
-               ;; org-level-2
-               ;; org-level-3
-               ;; org-level-4
-               ;; org-level-5
-               ;; org-level-6
-               ;; org-level-7
-               ;; org-level-8
-               font-lock-comment-face))
-  :init (setq mixed-pitch-set-height t))
+  :custom
+  (org-modern-fold-stars
+   '(("▶" . "▼")
+     ("▷" . "▽")
+     ("▸" . "▾")
+     ("▹" . "▿"))))
+
+;; (use-package mixed-pitch
+;;   :ensure t
+;;   :custom (mixed-pitch-fixed-pitch-faces
+;;            '(org-code
+;;                org-block
+;;                org-block-begin-line
+;;                org-block-end-line
+;;                org-table
+;;                org-verbatim
+;;                org-special-keyword
+;;                org-meta-line
+;;                org-checkbox
+;;                org-document-info-keyword
+;;                font-lock-comment-face))
+;;   :init (setq mixed-pitch-set-height nil))
 
 (use-package comment-dwim-2
   :ensure t
@@ -782,6 +831,12 @@
   :ensure t
   :config
   (add-hook 'after-init-hook #'global-flycheck-mode))
+
+(use-package flycheck-eglot
+  :ensure t
+  :after (flycheck eglot)
+  :config
+  (global-flycheck-eglot-mode 1))
 
 ;;; MARGINALIA
 ;; Marginalia enhances the completion experience in Emacs by adding
@@ -850,189 +905,6 @@
 :init
 (global-corfu-mode)
 (corfu-popupinfo-mode t))
-
-;;; LSP
-;; Emacs comes with an integrated LSP client called `eglot', which offers basic LSP functionality.
-;; However, `eglot' has limitations, such as not supporting multiple language servers
-;; simultaneously within the same buffer (e.g., handling both TypeScript, Tailwind and ESLint
-;; LSPs together in a React project). For this reason, the more mature and capable
-;; `lsp-mode' is included as a third-party package, providing advanced IDE-like features
-;; and better support for multiple language servers and configurations.
-;;
-;; NOTE: To install or reinstall an LSP server, use `M-x install-server RET`.
-;;       As with other editors, LSP configurations can become complex. You may need to
-;;       install or reinstall the server for your project due to version management quirks
-;;       (e.g., asdf or nvm) or other issues.
-;;       Fortunately, `lsp-mode` has a great resource site:
-;;       https://emacs-lsp.github.io/lsp-mode/
-(use-package lsp-mode
-:ensure t
-:straight t
-:defer t
-:hook (;; Replace XXX-mode with concrete major mode (e.g. python-mode)
-        (lsp-mode . lsp-enable-which-key-integration)  ;; Integrate with Which Key
-        ((js-mode                                      ;; Enable LSP for JavaScript
-            tsx-ts-mode                                  ;; Enable LSP for TSX
-            typescript-ts-base-mode                      ;; Enable LSP for TypeScript
-            css-mode
-            css-ts-mode                                     ;; Enable LSP for CSS
-            go-ts-mode                                   ;; Enable LSP for Go
-            js-ts-mode                                   ;; Enable LSP for JavaScript (TS mode)
-            prisma-mode                                  ;; Enable LSP for Prisma
-            python-base-mode                             ;; Enable LSP for Python
-            ruby-base-mode                               ;; Enable LSP for Ruby
-            rust-ts-mode                                 ;; Enable LSP for Rust
-            c++-ts-mode
-            c-ts-mode
-            web-mode) . lsp-deferred))                   ;; Enable LSP for Web (HTML)
-:commands lsp
-:config
-(add-to-list 'lsp-language-id-configuration
-             '(tsx-ts-mode . "typescriptreact"))
-(add-to-list 'lsp-language-id-configuration
-             '("\\.jsx\\'" . "javascriptreact"))
-:custom
-(lsp-keymap-prefix "C-c l")                           ;; Set the prefix for LSP commands.
-(lsp-inlay-hint-enable nil)                           ;; Usage of inlay hints.
-(lsp-completion-provider :capf)                       ;; Disable the default completion provider.
-(lsp-session-file (locate-user-emacs-file ".lsp-session")) ;; Specify session file location.
-(lsp-log-io nil)                                      ;; Disable IO logging for speed.
-(lsp-idle-delay 0.5)                                  ;; Set the delay for LSP to 0 (debouncing).
-(lsp-keep-workspace-alive nil)                        ;; Disable keeping the workspace alive.
-;; Core settings
-(lsp-enable-xref t)                                   ;; Enable cross-references.
-(lsp-auto-configure t)                                ;; Automatically configure LSP.
-(lsp-enable-links nil)                                ;; Disable links.
-(lsp-eldoc-enable-hover t)                            ;; Enable ElDoc hover.
-(lsp-enable-file-watchers nil)                        ;; Disable file watchers.
-(lsp-enable-folding nil)                              ;; Disable folding.
-(lsp-enable-imenu t)                                  ;; Enable Imenu support.
-(lsp-enable-indentation nil)                          ;; Disable indentation.
-(lsp-enable-on-type-formatting nil)                   ;; Disable on-type formatting.
-(lsp-enable-suggest-server-download t)                ;; Enable server download suggestion.
-(lsp-enable-symbol-highlighting t)                    ;; Enable symbol highlighting.
-(lsp-enable-text-document-color t)                    ;; Enable text document color.
-;; Modeline settings
-(lsp-modeline-code-actions-enable nil)                ;; Keep modeline clean.
-(lsp-modeline-diagnostics-enable nil)                 ;; Use `flymake' instead.
-(lsp-modeline-workspace-status-enable t)              ;; Display "LSP" in the modeline when enabled.
-(lsp-signature-doc-lines 1)                           ;; Limit echo area to one line.
-(lsp-eldoc-render-all t)                              ;; Render all ElDoc messages.
-;; Completion settings
-(lsp-completion-enable t)                             ;; Enable completion.
-(lsp-completion-enable-additional-text-edit t)        ;; Enable additional text edits for completions.
-(lsp-enable-snippet t)                              ;; Disable snippets
-(lsp-completion-show-kind t)                          ;; Show kind in completions.
-;; Lens settings
-(lsp-lens-enable t)                                   ;; Enable lens support.
-;; Headerline settings
-(lsp-headerline-breadcrumb-enable-symbol-numbers t)   ;; Enable symbol numbers in the headerline.
-(lsp-headerline-arrow "▶")                            ;; Set arrow for headerline.
-(lsp-headerline-breadcrumb-enable-diagnostics nil)    ;; Disable diagnostics in headerline.
-(lsp-headerline-breadcrumb-icons-enable nil)          ;; Disable icons in breadcrumb.
-;; Semantic settings
-(lsp-semantic-tokens-enable nil))                     ;; Disable semantic tokens.
-
-;;; LSP Additional Servers
-;; You can extend `lsp-mode' by integrating additional language servers for specific
-;; technologies. For example, `lsp-tailwindcss' provides support for Tailwind CSS
-;; classes within your HTML files. By using various LSP packages, you can connect
-;; multiple LSP servers simultaneously, enhancing your coding experience across
-;; different languages and frameworks.
-(use-package lsp-tailwindcss
-  :ensure t
-  :straight t
-  :defer t
-  :config
-  (add-to-list 'lsp-language-id-configuration '(".*\\.erb$" . "html")) ;; Associate ERB files with HTML.
-  :init
-  (setq lsp-tailwindcss-add-on-mode t)
-  (setq lsp-tailwindcss-major-modes '(web-mode html-mode sgml-mode css-mode rjsx-mode)))
-
-(use-package lsp-pyright
-  :ensure t
-  :custom (lsp-pyright-langserver-command "pyright") ;; or basedpyright
-  :hook (python-mode . (lambda ()
-                         (require 'lsp-pyright)
-                         (lsp))))  ; or lsp-deferred
-
-(use-package lsp-java
-  :ensure t
-  :init (add-hook 'java-mode-hook #'lsp))
-
-(use-package web-mode
-  :ensure t
-  :mode
-  (("\\.phtml\\'" . web-mode)
-   ("\\.php\\'" . web-mode)
-   ("\\.tpl\\'" . web-mode)
-   ("\\.[agj]sp\\'" . web-mode)
-   ("\\.as[cp]x\\'" . web-mode)
-   ("\\.erb\\'" . web-mode)
-   ("\\.mustache\\'" . web-mode)
-   ("\\.jsx\\'" . web-mode)
-   ("\\.css\\'" . web-mode)
-   ("\\.djhtml\\'" . web-mode)))
-
-(use-package yasnippet
-  :ensure t
-  :init
-  ;; Turn on yas after emacs starts up
-(yas-global-mode))
-
-(use-package emmet-mode
-  :ensure t
-  :hook (web-mode . emmet-mode)
-  :config
-  (setq emmet-indent-after-insert nil
-        emmet-indentation 2))
-
-(use-package slang-mode
-  :straight (:host github :repo "k1ngst0m/slang-mode")
-  :ensure t
-  :mode (("\\.slang\\'" . slang-mode)
-         ("\\.sl\\'" . slang-mode)
-         ("\\.slangh\\'" . slang-mode))
-  :config
-  ;; Optional: Enable LSP support
-  (require 'slang-lsp)
-  (slang-lsp-initialize))
-
-(use-package qml-mode
-  :ensure t
-  :hook (qml-mode . lsp-deferred)) ; Enable lsp-mode when opening .qml files
-
-(with-eval-after-load 'lsp-mode
-  (defun lsp-booster--advice-json-parse (old-fn &rest args)
-    "Try to parse bytecode instead of json."
-    (or
-     (when (equal (following-char) ?#)
-       (let ((bytecode (read (current-buffer))))
-         (when (byte-code-function-p bytecode)
-           (funcall bytecode))))
-     (apply old-fn args)))
-  (advice-add (if (progn (require 'json)
-                         (fboundp 'json-parse-buffer))
-                  'json-parse-buffer
-                'json-read)
-              :around
-              #'lsp-booster--advice-json-parse)
-
-  (defun lsp-booster--advice-final-command (old-fn cmd &optional test?)
-    "Prepend emacs-lsp-booster command to lsp CMD."
-    (let ((orig-result (funcall old-fn cmd test?)))
-      (if (and (not test?)                             ;; for check lsp-server-present?
-               (not (file-remote-p default-directory)) ;; see lsp-resolve-final-command, it would add extra shell wrapper
-               lsp-use-plists
-               (not (functionp 'json-rpc-connection))  ;; native json-rpc
-               (executable-find "emacs-lsp-booster"))
-          (progn
-            (when-let ((command-from-exec-path (executable-find (car orig-result))))  ;; resolve command from exec-path (in case not found in $PATH)
-              (setcar orig-result command-from-exec-path))
-            (message "Using emacs-lsp-booster for %s!" orig-result)
-            (cons "emacs-lsp-booster" orig-result))
-        orig-result)))
-  (advice-add 'lsp-resolve-final-command :around #'lsp-booster--advice-final-command))
 
 ;;; ELDOC-BOX
 ;; eldoc-box enhances the default Eldoc experience by displaying documentation in a popup box,
@@ -1232,13 +1104,13 @@
   (load-theme 'catppuccin :no-confirm))
 
 ;;; NERD-ICONS-CORFU
-;; Provides Nerd Icons to be used with CORFU.
+ ;; Provides Nerd Icons to be used with CORFU.
 (use-package nerd-icons-corfu
-:if ek-use-nerd-fonts
-:ensure t
-:straight t
-:defer t
-:after (:all corfu))
+ :if ek-use-nerd-fonts
+ :ensure t
+ :straight t
+ :defer t
+ :after (:all corfu))
 
 ;;; NERD ICONS
 ;; The `nerd-icons' package provides a set of icons for use in Emacs. These icons can
@@ -1510,6 +1382,15 @@
   (evil-define-key 'normal 'global (kbd "<leader> f p") 'project-find-file) 
 
   (evil-define-key 'normal 'global (kbd "<leader> u w") 'my/toggle-word-wrap)
+
+  (defun my/find-file-ssh ()
+    "Start TRAMP SSH file selection."
+    (interactive)
+    (let ((default-directory "/ssh:"))
+      (call-interactively #'find-file)))
+
+  (evil-define-key 'normal 'global (kbd "<leader> f s") 'my/find-file-ssh)
+
 
   (evil-mode 1))
 

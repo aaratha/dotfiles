@@ -252,9 +252,11 @@
       (setq mac-command-modifier 'meta)  ;; Set the Command key to act as the Meta key.
       (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font" :height 130))
 
+
+  (set-face-attribute 'fixed-pitch nil :family "JetBrainsMono Nerd Font")
+
   (set-face-attribute 'variable-pitch nil
-                        :family "EB Garamond"
-                        :height 200)
+                        :family "JetBrainsMono Nerd Font")
 
   ;; Save manual customizations to a separate file instead of cluttering `init.el'.
   ;; You can M-x customize, M-x customize-group, or M-x customize-themes, etc.
@@ -500,6 +502,18 @@
   (use-package org
   :ensure nil     ;; This is built-in, no need to fetch it.
   :init
+  (defun my/apply-org-heading-faces (&rest _)
+    "Keep Org headings monospace and scaled by level."
+    (set-face-attribute 'org-document-title nil :inherit 'fixed-pitch :weight 'bold :height 1.5)
+    (set-face-attribute 'org-level-1 nil :inherit 'fixed-pitch :weight 'bold :height 1.35)
+    (set-face-attribute 'org-level-2 nil :inherit 'fixed-pitch :weight 'bold :height 1.25)
+    (set-face-attribute 'org-level-3 nil :inherit 'fixed-pitch :weight 'semi-bold :height 1.15)
+    (set-face-attribute 'org-level-4 nil :inherit 'fixed-pitch :weight 'semi-bold :height 1.1)
+    (set-face-attribute 'org-level-5 nil :inherit 'fixed-pitch :weight 'normal :height 1.0)
+    (set-face-attribute 'org-level-6 nil :inherit 'fixed-pitch :weight 'normal :height 1.0)
+    (set-face-attribute 'org-level-7 nil :inherit 'fixed-pitch :weight 'normal :height 1.0)
+    (set-face-attribute 'org-level-8 nil :inherit 'fixed-pitch :weight 'normal :height 1.0))
+
   (defun +org-cycle-only-current-subtree-h (&optional arg)
     "Toggle the local fold at the point, and no deeper.
     `org-cycle's standard behavior is to cycle between three levels: collapsed,
@@ -539,15 +553,21 @@
 
     (add-hook 'org-mode-hook
             (lambda ()
-                (org-superstar-mode 1)
+                ;; (org-superstar-mode 1)
                 (visual-line-mode 1)
                 (visual-wrap-prefix-mode 1)
+                (org-modern-mode 1)
                 (org-latex-preview 1)
                 (org-fragtog-mode 1)))
 
     (setq org-hide-emphasis-markers t)
 
-    (setq org-superstar-leading-bullet ?\s)
+    ;;(setq org-pretty-entities t)
+
+    ;; (setq org-superstar-leading-bullet ?\s)
+
+    ;; (setq org-superstar-prettify-item-bullets t)
+    ;; (setq org-superstar-item-bullet-alist '((?+ . ?▶) (?* . ?◇) (?- . ?-)))
 
     (setq org-format-latex-options
       (plist-put org-format-latex-options :scale 1.7))
@@ -555,10 +575,13 @@
       (plist-put org-format-latex-options :background "Transparent"))
 
 
+    (setq org-cycle-emulate-tab 'white)
 
     (setq org-agenda-files (quote ("~/OneDrive/org")))
 
   :config
+  (my/apply-org-heading-faces)
+  (advice-add 'load-theme :after #'my/apply-org-heading-faces)
   ;; Bind it to TAB in org-mode
   ;;(define-key org-mode-map (kbd "<tab>") nil)
   ;;(org-defkey org-mode-map \[(tab)\] '+org-cycle-only-current-subtree-h)
@@ -608,9 +631,36 @@
   (with-eval-after-load 'tramp
     (with-eval-after-load 'compile
       (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
+
+  ;; LSP-Mode fix
+  ;; (with-eval-after-load 'lsp-mode
+  ;;   (defun my/tramp-disable-direct-async-for-lsp (orig &rest args)
+  ;;     (let ((tramp-direct-async-process t))
+  ;;       (cl-letf (((symbol-function 'tramp-direct-async-process-p)
+  ;;                  (lambda (&rest _) nil)))
+  ;;         (apply orig args))))
+  ;;   (advice-add 'lsp-stdio-connection :around #'my/tramp-disable-direct-async-for-lsp))
+  (defun $lsp-unless-remote ()
+    (if (file-remote-p buffer-file-name)
+        (progn (eldoc-mode -1)
+               (setq-local completion-at-point-functions nil))
+      (lsp)))
+#+end_src
+** Eglot
+#+begin_src emacs-lisp
+      (use-package eglot
+        :ensure t
+        :hook ((c-mode . eglot-ensure)
+               (c++-mode . eglot-ensure)
+               (c-ts-mode . eglot-ensure)
+               (c++-ts-mode . eglot-ensure)
+               (c-or-c++-mode . eglot-ensure)
+               (tsx-ts-mode . eglot-ensure)
+               (js-mode . eglot-ensure)
+               (js-ts-mode . eglot-ensure)))
 #+end_src
 * External
-** UI/UX
+** User Interface
 *** Vertico
 #+begin_src emacs-lisp
   ;;; ==================== EXTERNAL PACKAGES ====================
@@ -793,7 +843,7 @@
         (setq writeroom-global-effects (delq 'writeroom-set-alpha writeroom-global-effects))
         (setq writeroom-global-effects (delq 'writeroom-set-fullscreen writeroom-global-effects))
         :custom
-        (writeroom-width 60))
+        (writeroom-width 50))
 #+end_src
 
 *** Zoom Mode
@@ -804,31 +854,34 @@
     :custom
     (zoom-size '(0.618 . 0.618)))
  #+end_src
+*** Org-modern
+#+begin_src emacs-lisp
+  (use-package org-modern
+    :ensure t
+    :custom
+    (org-modern-fold-stars
+     '(("▶" . "▼")
+       ("▷" . "▽")
+       ("▸" . "▾")
+       ("▹" . "▿"))))
+#+end_src
 *** Mixed-pitch Mode
 #+begin_src emacs-lisp
-  (use-package mixed-pitch
-    :ensure t
-    :custom (mixed-pitch-fixed-pitch-faces
-             '(org-code
-                 org-block
-                 org-block-begin-line
-                 org-block-end-line
-                 org-table
-                 org-verbatim
-                 org-special-keyword
-                 org-meta-line
-                 org-checkbox
-                 org-document-info-keyword
-                 ;; org-level-1
-                 ;; org-level-2
-                 ;; org-level-3
-                 ;; org-level-4
-                 ;; org-level-5
-                 ;; org-level-6
-                 ;; org-level-7
-                 ;; org-level-8
-                 font-lock-comment-face))
-    :init (setq mixed-pitch-set-height t))
+  ;; (use-package mixed-pitch
+  ;;   :ensure t
+  ;;   :custom (mixed-pitch-fixed-pitch-faces
+  ;;            '(org-code
+  ;;                org-block
+  ;;                org-block-begin-line
+  ;;                org-block-end-line
+  ;;                org-table
+  ;;                org-verbatim
+  ;;                org-special-keyword
+  ;;                org-meta-line
+  ;;                org-checkbox
+  ;;                org-document-info-keyword
+  ;;                font-lock-comment-face))
+  ;;   :init (setq mixed-pitch-set-height nil))
 #+end_src
 *** Comment-dwim-2
 #+begin_src emacs-lisp
@@ -851,6 +904,12 @@
     :ensure t
     :config
     (add-hook 'after-init-hook #'global-flycheck-mode))
+
+  (use-package flycheck-eglot
+    :ensure t
+    :after (flycheck eglot)
+    :config
+    (global-flycheck-eglot-mode 1))
 #+end_src
 *** Marginalia
 #+begin_src emacs-lisp
@@ -928,7 +987,7 @@
   (global-corfu-mode)
   (corfu-popupinfo-mode t))
 #+end_src
-*** LSP 
+*** COMMENT LSP 
 #+begin_src emacs-lisp
   ;;; LSP
   ;; Emacs comes with an integrated LSP client called `eglot', which offers basic LSP functionality.
@@ -944,10 +1003,16 @@
   ;;       (e.g., asdf or nvm) or other issues.
   ;;       Fortunately, `lsp-mode` has a great resource site:
   ;;       https://emacs-lsp.github.io/lsp-mode/
+
+  ;; To use native JSON parsion (fastest)
+  ;; (setenv "LSP_USE_PLISTS" "1")
+
   (use-package lsp-mode
   :ensure t
   :straight t
   :defer t
+  ;; To use native JSON parsion (fastest)
+  ;; :init (setenv "LSP_USE_PLISTS" "true")
   :hook (;; Replace XXX-mode with concrete major mode (e.g. python-mode)
           (lsp-mode . lsp-enable-which-key-integration)  ;; Integrate with Which Key
           ((js-mode                                      ;; Enable LSP for JavaScript
@@ -1012,7 +1077,11 @@
   ;; Semantic settings
   (lsp-semantic-tokens-enable nil))                     ;; Disable semantic tokens.
 #+end_src
-*** LSP Additional Servers 
+
+#+RESULTS:
+| emmet-mode | lsp-deferred |
+
+*** COMMENT LSP Additional Servers 
 #+begin_src emacs-lisp
   ;;; LSP Additional Servers
   ;; You can extend `lsp-mode' by integrating additional language servers for specific
@@ -1084,7 +1153,7 @@
     :hook (qml-mode . lsp-deferred)) ; Enable lsp-mode when opening .qml files
 
 #+end_src
-*** LSP-Booster
+*** COMMENT LSP-Booster
 #+begin_src emacs-lisp
   (with-eval-after-load 'lsp-mode
     (defun lsp-booster--advice-json-parse (old-fn &rest args)
@@ -1115,6 +1184,7 @@
                 (setcar orig-result command-from-exec-path))
               (message "Using emacs-lsp-booster for %s!" orig-result)
               (cons "emacs-lsp-booster" orig-result))
+              ;; (append '("emacs-lsp-booster" "--disable-bytecode" "--") orig-result))
           orig-result)))
     (advice-add 'lsp-resolve-final-command :around #'lsp-booster--advice-final-command))
 #+end_src
@@ -1345,7 +1415,7 @@
 #+begin_src emacs-lisp
   ;;; NERD-ICONS-CORFU
   ;; Provides Nerd Icons to be used with CORFU.
-  (use-package nerd-icons-corfu
+ (use-package nerd-icons-corfu
   :if ek-use-nerd-fonts
   :ensure t
   :straight t
@@ -1634,6 +1704,15 @@
     (evil-define-key 'normal 'global (kbd "<leader> f p") 'project-find-file) 
 
     (evil-define-key 'normal 'global (kbd "<leader> u w") 'my/toggle-word-wrap)
+
+    (defun my/find-file-ssh ()
+      "Start TRAMP SSH file selection."
+      (interactive)
+      (let ((default-directory "/ssh:"))
+        (call-interactively #'find-file)))
+
+    (evil-define-key 'normal 'global (kbd "<leader> f s") 'my/find-file-ssh)
+
 
     (evil-mode 1))
 #+end_src
