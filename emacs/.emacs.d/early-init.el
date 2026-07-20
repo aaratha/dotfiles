@@ -1,15 +1,10 @@
-;; early-init.el --- Early initialization file -*- lexical-binding: t; -*-
-;; Author: Aseem Ratha
+;;; early-init.el --- Early initialization -*- lexical-binding: t; -*-
 
-;;; Commentary:
-;; Early initialization file to set LSP to use plists for better performance.
-
-;;; Code:
-
-;; Set LSP to use plists for better performance.
-;;(setenv "LSP_USE_PLISTS" "true")
-
-
+;; undecorated-round goes here so the window is never drawn with decorations,
+;; avoiding a visible flash on startup. NS-specific params (alpha-background,
+;; ns-background-blur, ns-alpha-elements) require a live frame and are applied
+;; via after-init-hook in the Tweaks section instead.
+(push '(undecorated-round . t) default-frame-alist)
 
 (provide 'early-init)
 ;;; early-init.el ends here
