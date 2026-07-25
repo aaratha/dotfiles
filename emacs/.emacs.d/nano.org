@@ -2246,8 +2246,8 @@ orig-result)))
     (require 'nano-theme-support)
     (nano-mode)
     :custom
-    (nano-dark-background "#191c24")
-    (nano-dark-highlight "#191c24")
+    (nano-dark-background "#000a0f") ;;"#191c24")
+    (nano-dark-highlight "#000a0f") ;;"#191c24")
     :config
     (load-theme 'nano-dark t)
     (set-face-attribute 'bold-italic nil :weight 'normal :slant 'italic)
@@ -2711,8 +2711,8 @@ orig-result)))
                   ;;      :straight (smudge :type git :host github :repo "danielfm/smudge")
                   ;;      :bind ("C-c ." . smudge-command-map)
                   ;;      :custom
-                  ;;      (smudge-oauth2-client-secret "REDACTED_SPOTIFY_CLIENT_SECRET")
-                  ;;      (smudge-oauth2-client-id "REDACTED_SPOTIFY_CLIENT_ID")
+                  ;;      (smudge-oauth2-client-secret "REDACTED")
+                  ;;      (smudge-oauth2-client-id "REDACTED")
                   ;;      (smudge-player-use-transient-map t)
                   ;;      :init
                   ;;      ;; hack to ensure smudge-command-map load for modeline 
@@ -2857,7 +2857,7 @@ orig-result)))
   (defun my/apply-frame-transparency (&optional frame)
     "Apply macOS transparency parameters to FRAME (defaults to selected frame)."
     (with-selected-frame (or frame (selected-frame))
-      (set-frame-parameter nil 'alpha-background 0.7)
+      (set-frame-parameter nil 'alpha-background 0.6)
       (set-frame-parameter nil 'ns-background-blur 30)
       (set-frame-parameter nil 'ns-alpha-elements '(ns-alpha-all))))
 

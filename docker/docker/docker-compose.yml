@@ -9,8 +9,8 @@ services:
       - NET_ADMIN # required for VPN
     environment:
       - VPNSP=NORDVPN
-      - USER=REDACTED_NORDVPN_USER
-      - PASSWORD=REDACTED_NORDVPN_PASSWORD
+      - USER=${NORDVPN_USER}
+      - PASSWORD=${NORDVPN_PASSWORD}
       - TZ=America/New_York
       - OPENVPN_NETWORK=10.0.0.0/8 # optional, internal network for routed containers
       - SERVER_REGIONS=United_States # or pick your preferred NordVPN region

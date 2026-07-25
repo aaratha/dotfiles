@@ -2001,8 +2001,8 @@
                   ;;      :straight (smudge :type git :host github :repo "danielfm/smudge")
                   ;;      :bind ("C-c ." . smudge-command-map)
                   ;;      :custom
-                  ;;      (smudge-oauth2-client-secret "REDACTED_SPOTIFY_CLIENT_SECRET")
-                  ;;      (smudge-oauth2-client-id "REDACTED_SPOTIFY_CLIENT_ID")
+                  ;;      (smudge-oauth2-client-secret "REDACTED")
+                  ;;      (smudge-oauth2-client-id "REDACTED")
                   ;;      (smudge-player-use-transient-map t)
                   ;;      :init
                   ;;      ;; hack to ensure smudge-command-map load for modeline 
