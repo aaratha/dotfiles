@@ -18,6 +18,9 @@ end
 zoxide init fish | source
 starship init fish | source
 
+alias ls="eza --icons --group-directories-first"
+alias cd="z"
+
 # set -gx ANTHROPIC_AUTH_TOKEN "test"
 # set -gx ANTHROPIC_BASE_URL "http://127.0.0.1:3456"
 set -gx NO_PROXY "127.0.0.1"
