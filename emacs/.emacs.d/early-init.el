@@ -4,7 +4,8 @@
 ;; avoiding a visible flash on startup. NS-specific params (alpha-background,
 ;; ns-background-blur, ns-alpha-elements) require a live frame and are applied
 ;; via after-init-hook in the Tweaks section instead.
-(push '(undecorated-round . t) default-frame-alist)
+;; (push '(undecorated-round . t) default-frame-alist)
 
-(provide 'early-init)
-;;; early-init.el ends here
+;; (provide 'early-init)
+;; ;;; 
+early-init.el ends here

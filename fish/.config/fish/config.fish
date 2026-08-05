@@ -15,22 +15,8 @@ function .....
     cd ../../../..
 end
 
-set -x JAVA_HOME (/usr/libexec/java_home -v 25)
-set -x PATH $JAVA_HOME/bin $PATH
-
-set brew_prefix (brew --prefix)
-
-# For lsp-booster to work in emacs
-launchctl setenv LSP_USE_PLISTS true
-
-source "$HOME/.cargo/env.fish"
-
 zoxide init fish | source
 starship init fish | source
-
-alias ls="eza --icons --group-directories-first"
-
-alias cd="z"
 
 # set -gx ANTHROPIC_AUTH_TOKEN "test"
 # set -gx ANTHROPIC_BASE_URL "http://127.0.0.1:3456"

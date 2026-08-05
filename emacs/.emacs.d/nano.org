@@ -130,10 +130,11 @@
   ;; avoiding a visible flash on startup. NS-specific params (alpha-background,
   ;; ns-background-blur, ns-alpha-elements) require a live frame and are applied
   ;; via after-init-hook in the Tweaks section instead.
-  (push '(undecorated-round . t) default-frame-alist)
+  ;; (push '(undecorated-round . t) default-frame-alist)
 
-  (provide 'early-init)
-  ;;; early-init.el ends here
+  ;; (provide 'early-init)
+  ;; ;;; 
+  early-init.el ends here
 #+end_src
 
 * Built in
@@ -237,23 +238,6 @@
   ;; `use-package` declarations for specific packages, which will help us enable
   ;; the desired features and improve our workflow.
 #+end_src
-** Exec Path From Shell
-#+begin_src emacs-lisp
-  ;; When Emacs runs as a daemon (e.g. `brew services start emacs-plus'), it
-  ;; inherits whatever PATH launchd/homebrew gave the process at startup, not
-  ;; your interactive shell's PATH. Any CLI tool installed afterwards (like
-  ;; `claude-agent-acp' for agent-shell) is invisible to that already-running
-  ;; daemon until the service is restarted. `exec-path-from-shell' fixes this
-  ;; at startup by importing PATH from a real login/interactive shell, so a
-  ;; `brew services restart' is no longer required after installing new tools.
-  (use-package exec-path-from-shell
-    :ensure t
-    :init
-    (setq exec-path-from-shell-variables '("PATH" "MANPATH"))
-    :config
-    (when (or (daemonp) (memq window-system '(mac ns x)))
-      (exec-path-from-shell-initialize)))
-#+end_src
 ** Core Emacs
 #+begin_src emacs-lisp
   ;;; EMACS
@@ -315,10 +299,10 @@
     ;; Configure font settings based on the operating system.
     ;; Ok, this kickstart is meant to be used on the terminal, not on GUI.
     ;; But without this, I fear you could start Graphical Emacs and be sad :(
-    (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font"  :height 100)
+    (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font"  :height 85)
     (when (eq system-type 'darwin)       ;; Check if the system is macOS.
       (setq mac-command-modifier 'meta)  ;; Set the Command key to act as the Meta key.
-      (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font" :height 130))
+      (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font" :height 50))
 
 
     (set-face-attribute 'fixed-pitch nil :family "JetBrainsMono Nerd Font")
@@ -723,23 +707,24 @@
 #+end_src
 ** Eglot
 #+begin_src emacs-lisp
-  (use-package eglot
-    :ensure t
-    :config
-    (add-to-list 'eglot-server-programs
-             '((rust-ts-mode rust-mode) .
-               ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
-    :hook ((c-mode . eglot-ensure)
-           (c++-mode . eglot-ensure)
-           (c-ts-mode . eglot-ensure)
-           (c++-ts-mode . eglot-ensure)
-           (c-or-c++-mode . eglot-ensure)
-           (tsx-ts-mode . eglot-ensure)
-           (js-mode . eglot-ensure)
-           (js-ts-mode . eglot-ensure)
-           (markdown-mode . eglot-ensure)
-           (markdown-ts-mode . eglot-ensure)
-           (racket-mode . eglot-ensure)))
+    (use-package eglot
+      :ensure t
+      :config
+      (add-to-list 'eglot-server-programs
+               '((rust-ts-mode rust-mode) .
+                 ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
+      :hook ((c-mode . eglot-ensure)
+             (c++-mode . eglot-ensure)
+             (c-ts-mode . eglot-ensure)
+             (c++-ts-mode . eglot-ensure)
+             (c-or-c++-mode . eglot-ensure)
+             (tsx-ts-mode . eglot-ensure)
+             (js-mode . eglot-ensure)
+             (js-ts-mode . eglot-ensure)
+             (markdown-mode . eglot-ensure)
+             (markdown-ts-mode . eglot-ensure)
+             (racket-mode . eglot-ensure)
+             (nix-ts-mode . eglot-ensure)))
 #+end_src
 * External
 ** User Interface
@@ -885,22 +870,22 @@
 #+end_src
 *** Doom-modeline 
 #+begin_src emacs-lisp
-  ;; ;;; DOOM MODELINE
-  ;; ;; The `doom-modeline' package provides a sleek, modern mode-line that is visually appealing
-  ;; ;; and functional. It integrates well with various Emacs features, enhancing the overall user
-  ;; ;; experience by displaying relevant information in a compact format.
-  ;; (use-package doom-modeline
-  ;; :ensure t
-  ;; :straight t
-  ;; :defer t
-  ;; :custom
-  ;; (doom-modeline-buffer-file-name-style 'buffer-name)  ;; Set the buffer file name style to just the buffer name (without path).
-  ;; (doom-modeline-project-detection 'project)           ;; Enable project detection for displaying the project name.
-  ;; (doom-modeline-buffer-name t)                        ;; Show the buffer name in the mode line.
-  ;; (doom-modeline-vcs-max-length 25)                    ;; Limit the version control system (VCS) branch name length to 25 characters.
-  ;; :init
-  ;; :hook
-  ;; (after-init . doom-modeline-mode))
+;;; DOOM MODELINE
+;; The `doom-modeline' package provides a sleek, modern mode-line that is visually appealing
+;; and functional. It integrates well with various Emacs features, enhancing the overall user
+;; experience by displaying relevant information in a compact format.
+(use-package doom-modeline
+:ensure t
+:straight t
+:defer t
+:custom
+(doom-modeline-buffer-file-name-style 'buffer-name)  ;; Set the buffer file name style to just the buffer name (without path).
+(doom-modeline-project-detection 'project)           ;; Enable project detection for displaying the project name.
+(doom-modeline-buffer-name t)                        ;; Show the buffer name in the mode line.
+(doom-modeline-vcs-max-length 25)                    ;; Limit the version control system (VCS) branch name length to 25 characters.
+:init
+:hook
+(after-init . doom-modeline-mode))
 #+end_src
 
 #+RESULTS:
@@ -914,7 +899,7 @@
 ;;    Packages     : %s
  (emacs-init-time) (length (hash-table-keys straight--recipe-cache)))))) (bootstrap-version t)] |tramp-register-archive-autoload-file-name-handler |magit-maybe-define-global-key-bindings |table--make-cell-map |
 
-*** Nano-modeline
+*** COMMENT Nano-modeline
 #+begin_src emacs-lisp
 
   ;; Hide the standard mode-line globally. Must be setq-default since
@@ -939,6 +924,7 @@
     (org-agenda-mode      . nano-modeline-org-agenda-mode)
     :init
     (setq-default mode-line-format nil)
+    :custom
     :config
     (require 'nano-modeline)
     (nano-modeline-prog-mode t)
@@ -989,17 +975,31 @@
 
 #+RESULTS:
 
-*** Treemacs 
-
+*** Neotree 
 #+begin_src emacs-lisp
+    ;; ;;; NEOTREE
+    ;; ;; The `neotree' package provides a file tree explorer for Emacs, allowing easy navigation
+    ;; ;; through directories and files. It presents a visual representation of the file system
+    ;; ;; and integrates with version control to show file states.
+    ;; (use-package neotree
+    ;; :ensure t
+    ;; :straight t
+    ;; :custom
+    ;; (neo-show-hidden-files t)                ;; By default shows hidden files (toggle with H)
+    ;; (neo-theme 'nerd)                        ;; Set the default theme for Neotree to 'nerd' for a visually appealing look.
+    ;; (neo-vc-integration '(face char))        ;; Enable VC integration to display file states with faces (color coding) and characters (icons).
+    ;; :defer t                                 ;; Load the package only when needed to improve startup time.
+    ;; :config
+    ;; (if ek-use-nerd-fonts                    ;; Check if nerd fonts are being used.
+    ;;     (setq neo-theme 'nerd-icons)         ;; Set the theme to 'nerd-icons' if nerd fonts are available.
+    ;;     (setq neo-theme 'nerd)))               ;; Otherwise, fall back to the 'nerd' theme.
 (use-package treemacs
   :ensure t
   :init
   (setq treemacs-width 26)
   :config
   (set-face-attribute 'treemacs-window-background-face nil
-    :background "#000a0f")
-  (treemacs-follow-mode 1))
+    :background "#000a0f"))
 #+end_src
 
 #+RESULTS:
@@ -1711,6 +1711,11 @@ orig-result)))
            nil))))))
     (add-hook 'racket-mode-hook 'rm-replace-lambda)) 
 #+end_src
+*** Nix-ts-mode
+#+begin_src emacs-lisp
+  (use-package nix-ts-mode
+    :ensure t)
+#+end_src
 *** Dotenv 
 #+begin_src emacs-lisp
   ;;; DOTENV
@@ -2178,7 +2183,6 @@ orig-result)))
 #+begin_src emacs-lisp
   (use-package agent-shell
     :ensure t
-    :after evil
     ;; :ensure-system-package
     ;; ;; Add agent installation configs here
     ;; ((claude . "brew install claude-code")
@@ -2250,11 +2254,8 @@ orig-result)))
     (require 'nano-theme-support)
     (nano-mode)
     :custom
-    (nano-dark-background "#000a0f") ;;"#191c24")
-    (nano-dark-highlight "#000a0f") ;;"#191c24")
-    (nano-dark-subtle "#191c24")
-    (nano-dark-faded "#5f696b")
-    (nano-dark-salient "#819ba1")
+    (nano-dark-background "#191c24") ;;"#191c24")
+    (nano-dark-highlight "#191c24") ;;"#191c24")
     :config
     (load-theme 'nano-dark t)
     (set-face-attribute 'bold-italic nil :weight 'normal :slant 'italic)
@@ -2286,6 +2287,8 @@ orig-result)))
 #+begin_src emacs-lisp
   ;; (set-face-attribute 'mode-line nil :background "#0b181e")
   ;; (set-face-attribute 'mode-line-inactive nil :background "#0b181e")
+
+  (set-frame-parameter nil 'alpha-background 0.8) 
 #+end_src
 
 #+RESULTS:
@@ -2711,52 +2714,6 @@ orig-result)))
 #+RESULTS:
 : t
 
-*** Spotify
-#+begin_src emacs-lisp
-                    ;; can be a list of keys or recipients (e-mail addresses) as well
-                  ;;     (use-package smudge
-                  ;;      :straight (smudge :type git :host github :repo "danielfm/smudge")
-                  ;;      :bind ("C-c ." . smudge-command-map)
-                  ;;      :custom
-                  ;;      (smudge-oauth2-client-secret "REDACTED")
-                  ;;      (smudge-oauth2-client-id "REDACTED")
-                  ;;      (smudge-player-use-transient-map t)
-                  ;;      :init
-                  ;;      ;; hack to ensure smudge-command-map load for modeline 
-                  ;;      ;; status to function as expected in first go
-                  ;;      (setq plstore-encrypt-to "B6E8E114A64887D599893113706854856E58412B")
-                  ;;      (setq smudge-transport 'connect)
-                  ;;      (evil-define-key 'normal 'global (kbd "<leader> s s") 'smudge-my-library)
-                  ;;      (require 'smudge)
-                  ;;      :config
-                  ;;      (global-smudge-remote-mode))
-
-            (use-package spotifyd
-                :load-path "/Users/aaratha/projects/spotifyd"
-                :commands (spotifyd-authenticate
-                           spotifyd-liked-songs
-                           spotifyd-play
-                           spotifyd-pause
-                           spotifyd-play-pause
-                           spotifyd-ui)
-                :custom
-                (spotifyd-client-id "7e9b0a1d9a1f4f539c7835a457c1d9b5")
-                (spotifyd-redirect-uri "http://127.0.0.1:8080/callback")
-                :config
-                (evil-define-key 'normal 'global (kbd "<leader> d l") 'spotifyd-liked-songs)
-                (evil-define-key 'normal 'global (kbd "<leader> d p") 'spotifyd-play-pause)
-                (evil-define-key 'normal 'global (kbd "<leader> d n") 'spotifyd-next)
-                (evil-define-key 'normal 'global (kbd "<leader> d N") 'spotifyd-previous)
-                (evil-define-key 'normal 'global (kbd "<leader> d q") 'spotifyd-quit)
-                (evil-define-key 'normal 'global (kbd "<leader> d s") 'spotifyd-srt)
-                (evil-define-key 'normal 'global (kbd "<leader> d u") 'spotifyd-ui)
-                (evil-define-key 'normal 'global (kbd "<leader> d d") 'spotifyd-devices))
-
-
-#+end_src
-
-#+RESULTS:
-
 *** Vterm
 #+begin_src emacs-lisp
   (use-package vterm
@@ -2854,40 +2811,6 @@ orig-result)))
 #+RESULTS:
 : copilot-accept-completion
 
-** Tweaks
-#+begin_src emacs-lisp
-  ;; undecorated-round is set in early-init.el.
-  ;; In daemon mode the graphical frame only exists when emacsclient connects,
-  ;; so after-make-frame-functions is the correct hook.  In non-daemon mode
-  ;; window-setup-hook fires after the initial frame is visible.  The guarded
-  ;; direct call covers config reloads (neither hook re-fires on reload).
-  (defun my/apply-frame-transparency (&optional frame)
-    "Apply macOS transparency parameters to FRAME (defaults to selected frame)."
-    (with-selected-frame (or frame (selected-frame))
-      (set-frame-parameter nil 'alpha-background 0.6)
-      (set-frame-parameter nil 'ns-background-blur 30)
-      (set-frame-parameter nil 'ns-alpha-elements '(ns-alpha-all))))
-
-  ;; ns-background-blur must be present at frame creation time to configure the
-  ;; NSWindow backing material — set-frame-parameter after the fact is too late.
-  ;; Putting it in default-frame-alist ensures emacsclient frames pick it up.
-  (add-to-list 'default-frame-alist '(ns-background-blur . 30))
-  (add-to-list 'default-frame-alist '(ns-alpha-elements ns-alpha-all))
-
-  (add-hook 'after-make-frame-functions #'my/apply-frame-transparency)
-  (unless (daemonp)
-    (add-hook 'window-setup-hook #'my/apply-frame-transparency))
-  (when (display-graphic-p)
-    (my/apply-frame-transparency))
-
-  (setq mac-command-modifier 'meta)
-
-  (setq text-scale-mode-step 1.1)
-#+end_src
-
-#+RESULTS:
-: 1.1
-
 ** Emacs-kick 
 #+begin_src emacs-lisp
   ;;; UTILITARY FUNCTION TO INSTALL EMACS-KICK
@@ -2911,3 +2834,11 @@ orig-result)))
 #+end_src
 #+RESULTS:
 : init
+
+** Tweaks
+*** PGTK
+#+begin_src emacs-lisp
+  (when (boundp 'ptkg-wait-for-event-timout)
+    (setq pgtk-wait-for-event-timout 0.001))
+#+end_src
+
