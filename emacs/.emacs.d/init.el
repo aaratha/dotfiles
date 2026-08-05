@@ -206,6 +206,21 @@
 ;; `use-package` declarations for specific packages, which will help us enable
 ;; the desired features and improve our workflow.
 
+;; When Emacs runs as a daemon (e.g. `brew services start emacs-plus'), it
+;; inherits whatever PATH launchd/homebrew gave the process at startup, not
+;; your interactive shell's PATH. Any CLI tool installed afterwards (like
+;; `claude-agent-acp' for agent-shell) is invisible to that already-running
+;; daemon until the service is restarted. `exec-path-from-shell' fixes this
+;; at startup by importing PATH from a real login/interactive shell, so a
+;; `brew services restart' is no longer required after installing new tools.
+(use-package exec-path-from-shell
+  :ensure t
+  :init
+  (setq exec-path-from-shell-variables '("PATH" "MANPATH"))
+  :config
+  (when (or (daemonp) (memq window-system '(mac ns x)))
+    (exec-path-from-shell-initialize)))
+
 ;;; EMACS
 ;;  This is biggest one. Keep going, plugins (oops, I mean packages) will be shorter (:)
 (use-package emacs
@@ -859,29 +874,14 @@
 (use-package svg-tag-mode
   :ensure t)
 
-;; ;;; NEOTREE
-    ;; ;; The `neotree' package provides a file tree explorer for Emacs, allowing easy navigation
-    ;; ;; through directories and files. It presents a visual representation of the file system
-    ;; ;; and integrates with version control to show file states.
-    ;; (use-package neotree
-    ;; :ensure t
-    ;; :straight t
-    ;; :custom
-    ;; (neo-show-hidden-files t)                ;; By default shows hidden files (toggle with H)
-    ;; (neo-theme 'nerd)                        ;; Set the default theme for Neotree to 'nerd' for a visually appealing look.
-    ;; (neo-vc-integration '(face char))        ;; Enable VC integration to display file states with faces (color coding) and characters (icons).
-    ;; :defer t                                 ;; Load the package only when needed to improve startup time.
-    ;; :config
-    ;; (if ek-use-nerd-fonts                    ;; Check if nerd fonts are being used.
-    ;;     (setq neo-theme 'nerd-icons)         ;; Set the theme to 'nerd-icons' if nerd fonts are available.
-    ;;     (setq neo-theme 'nerd)))               ;; Otherwise, fall back to the 'nerd' theme.
 (use-package treemacs
   :ensure t
   :init
   (setq treemacs-width 26)
   :config
   (set-face-attribute 'treemacs-window-background-face nil
-    :background "#000a0f"))
+    :background "#000a0f")
+  (treemacs-follow-mode 1))
 
 (use-package writeroom-mode
   :ensure t
@@ -1600,6 +1600,7 @@
 
 (use-package agent-shell
   :ensure t
+  :after evil
   ;; :ensure-system-package
   ;; ;; Add agent installation configs here
   ;; ((claude . "brew install claude-code")
@@ -1630,8 +1631,11 @@
   (require 'nano-theme-support)
   (nano-mode)
   :custom
-  (nano-dark-background "#191c24")
-  (nano-dark-highlight "#191c24")
+  (nano-dark-background "#000a0f") ;;"#191c24")
+  (nano-dark-highlight "#000a0f") ;;"#191c24")
+  (nano-dark-subtle "#191c24")
+  (nano-dark-faded "#5f696b")
+  (nano-dark-salient "#819ba1")
   :config
   (load-theme 'nano-dark t)
   (set-face-attribute 'bold-italic nil :weight 'normal :slant 'italic)
@@ -2021,8 +2025,8 @@
       ;;      :straight (smudge :type git :host github :repo "danielfm/smudge")
       ;;      :bind ("C-c ." . smudge-command-map)
       ;;      :custom
-      ;;      (smudge-oauth2-client-secret "REDACTED_SPOTIFY_CLIENT_SECRET")
-      ;;      (smudge-oauth2-client-id "REDACTED_SPOTIFY_CLIENT_ID")
+      ;;      (smudge-oauth2-client-secret "REDACTED")
+      ;;      (smudge-oauth2-client-id "REDACTED")
       ;;      (smudge-player-use-transient-map t)
       ;;      :init
       ;;      ;; hack to ensure smudge-command-map load for modeline 
@@ -2140,7 +2144,7 @@
 (defun my/apply-frame-transparency (&optional frame)
   "Apply macOS transparency parameters to FRAME (defaults to selected frame)."
   (with-selected-frame (or frame (selected-frame))
-    (set-frame-parameter nil 'alpha-background 0.7)
+    (set-frame-parameter nil 'alpha-background 0.6)
     (set-frame-parameter nil 'ns-background-blur 30)
     (set-frame-parameter nil 'ns-alpha-elements '(ns-alpha-all))))
 
