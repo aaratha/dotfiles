@@ -265,7 +265,7 @@
   ;; Configure font settings based on the operating system.
   ;; Ok, this kickstart is meant to be used on the terminal, not on GUI.
   ;; But without this, I fear you could start Graphical Emacs and be sad :(
-  (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font"  :height 85)
+  (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font"  :height 120)
   (when (eq system-type 'darwin)       ;; Check if the system is macOS.
     (setq mac-command-modifier 'meta)  ;; Set the Command key to act as the Meta key.
     (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font" :height 50))
@@ -575,7 +575,7 @@
 
 
   
-  (setq org-preview-latex-image-directory "~/Google Drive/My Drive/ltximg/")
+  (setq org-preview-latex-image-directory "~/mnt/gdrive/ltximg/")
 
 
   ;; collapses headline when in subtree on normal text
@@ -648,9 +648,16 @@
              (setq-local completion-at-point-functions nil))
     (lsp)))
 
+(use-package envrc
+  :ensure t
+  :hook (after-init . envrc-global-mode))
+
 (use-package eglot
   :ensure t
   :config
+  (add-to-list 'eglot-server-programs
+           '((c-mode c++-mode c-ts-mode c++-ts-mode c-or-c++-mode)
+             . ("clangd" "--query-driver=/run/current-system/sw/bin/c++")))
   (add-to-list 'eglot-server-programs
            '((rust-ts-mode rust-mode) .
              ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
@@ -665,7 +672,10 @@
          (markdown-mode . eglot-ensure)
          (markdown-ts-mode . eglot-ensure)
          (racket-mode . eglot-ensure)
-         (nix-ts-mode . eglot-ensure)))
+         (nix-ts-mode . eglot-ensure)
+         (web-mode . eglot-ensure)
+         (vue-ts-mode . eglot-ensure)
+         (vue-mode . eglot-ensure)))
 
 ;;; ==================== EXTERNAL PACKAGES ====================
 ;;
@@ -785,22 +795,41 @@
 :config
 (setq indent-guide-char "│"))    ;; Set the character used for the indent guide.
 
-;;; DOOM MODELINE
-;; The `doom-modeline' package provides a sleek, modern mode-line that is visually appealing
-;; and functional. It integrates well with various Emacs features, enhancing the overall user
-;; experience by displaying relevant information in a compact format.
-(use-package doom-modeline
-:ensure t
-:straight t
-:defer t
-:custom
-(doom-modeline-buffer-file-name-style 'buffer-name)  ;; Set the buffer file name style to just the buffer name (without path).
-(doom-modeline-project-detection 'project)           ;; Enable project detection for displaying the project name.
-(doom-modeline-buffer-name t)                        ;; Show the buffer name in the mode line.
-(doom-modeline-vcs-max-length 25)                    ;; Limit the version control system (VCS) branch name length to 25 characters.
-:init
-:hook
-(after-init . doom-modeline-mode))
+;; Hide the standard mode-line globally. Must be setq-default since
+  ;; mode-line-format is buffer-local — plain setq only affects one buffer.
+(use-package nano-modeline
+  :ensure t
+  :after nano-theme
+  :hook
+  (prog-mode            . nano-modeline-prog-mode)
+  (text-mode            . nano-modeline-text-mode)
+  (org-mode             . nano-modeline-org-mode)
+  (pdf-view-mode        . nano-modeline-pdf-mode)
+  (mu4e-headers-mode    . nano-modeline-mu4e-headers-mode)
+  (mu4e-view-mode       . nano-modeline-mu4e-message-mode)
+  (elfeed-show-mode     . nano-modeline-elfeed-entry-mode)
+  (elfeed-search-mode   . nano-modeline-elfeed-search-mode)
+  (term-mode            . nano-modeline-term-mode)
+  (xwidget-webkit-mode  . nano-modeline-xwidget-mode)
+  (messages-buffer-mode . nano-modeline-message-mode)
+  (org-capture-mode     . nano-modeline-org-capture-mode)
+  (org-agenda-mode      . nano-modeline-org-agenda-mode)
+  :init
+  (setq-default mode-line-format nil)
+  :config
+  (require 'nano-modeline)
+  (nano-modeline-prog-mode t) ;; sets a sane default before any hook fires
+  ;; Mode hooks only fire on mode entry, not for buffers already open at startup.
+  ;; Walk all buffers once after init to apply the correct nano-modeline variant.
+  (add-hook 'after-init-hook
+            (lambda ()
+              (dolist (buf (buffer-list))
+                (with-current-buffer buf
+                  (when (fboundp 'nano-modeline-prog-mode)
+                    (cond
+                     ((derived-mode-p 'org-mode)  (nano-modeline-org-mode))
+                     ((derived-mode-p 'prog-mode) (nano-modeline-prog-mode))
+                     ((derived-mode-p 'text-mode) (nano-modeline-text-mode)))))))))
 
 ;; (use-package punch-line
 ;;   :ensure t
@@ -1230,6 +1259,12 @@
 (use-package nix-ts-mode
   :ensure t)
 
+(use-package web-mode
+  :ensure t)
+
+(use-package vue-mode
+  :ensure t)
+
 ;;; DOTENV
 ;; A simple major mode to provide .env files with color highlighting
 (use-package dotenv-mode
@@ -1595,14 +1630,17 @@
   (require 'nano-theme-support)
   (nano-mode)
   :custom
-  (nano-dark-background "#191c24") ;;"#191c24")
-  (nano-dark-highlight "#191c24") ;;"#191c24")
+  (nano-dark-background "#000a0f") ;;"#191c24")
+  (nano-dark-highlight "#071014") ;;"#191c24")
+  (nano-dark-subtle "#101f26") ;;"#191c24")
   :config
+  (window-divider-mode -1)
   (load-theme 'nano-dark t)
   (set-face-attribute 'bold-italic nil :weight 'normal :slant 'italic)
   (set-face-attribute 'italic nil :weight 'light :slant 'italic)
   (setq nano-fonts-use nil)
   (load-theme 'nano-dark t)
+  (set-face-attribute 'vertical-border nil :foreground "#474747")
   ;; nano-mode sets frame params via default-frame-alist, which only affects new
   ;; frames.  Apply them to the already-existing initial frame after init completes.
   (add-hook 'after-init-hook
@@ -1622,7 +1660,7 @@
 ;; (set-face-attribute 'mode-line nil :background "#0b181e")
 ;; (set-face-attribute 'mode-line-inactive nil :background "#0b181e")
 
-(set-frame-parameter nil 'alpha-background 0.8)
+(set-frame-parameter nil 'alpha-background 0.9)
 
 ;;; NERD-ICONS-CORFU
  ;; Provides Nerd Icons to be used with CORFU.
@@ -1880,12 +1918,12 @@
     (kbd "SPC f n")  ; SPC is your leader
     (lambda ()
       (interactive)
-      (find-file "~/Google Drive/My Drive/org/notes.org")))
+      (find-file "~/mnt/gdrive/org/notes.org")))
   (evil-define-key 'normal 'global
     (kbd "SPC f w")  ; SPC is your leader
     (lambda ()
       (interactive)
-      (find-file "~/Google Drive/My Drive/org/work.org")))
+      (find-file "~/mnt/gdrive/org/work.org")))
   (evil-define-key 'normal 'global
     (kbd "SPC f r")  ; SPC is your leader
     (lambda ()

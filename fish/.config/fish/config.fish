@@ -20,6 +20,7 @@ starship init fish | source
 
 alias ls="eza --icons --group-directories-first"
 alias cd="z"
+alias cat="bat"
 
 # set -gx ANTHROPIC_AUTH_TOKEN "test"
 # set -gx ANTHROPIC_BASE_URL "http://127.0.0.1:3456"
@@ -28,6 +29,8 @@ set -gx DISABLE_TELEMETRY true
 set -gx DISABLE_COST_WARNINGS true
 set -gx API_TIMEOUT_MS 600000
 set -e CLAUDE_CODE_USE_BEDROCK
+
+fish_add_path ~/.npm-global/bin
 
 # pnpm
 set -gx PNPM_HOME /Users/aaratha/Library/pnpm

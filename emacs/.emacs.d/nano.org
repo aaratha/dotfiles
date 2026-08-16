@@ -299,7 +299,7 @@
     ;; Configure font settings based on the operating system.
     ;; Ok, this kickstart is meant to be used on the terminal, not on GUI.
     ;; But without this, I fear you could start Graphical Emacs and be sad :(
-    (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font"  :height 85)
+    (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font"  :height 120)
     (when (eq system-type 'darwin)       ;; Check if the system is macOS.
       (setq mac-command-modifier 'meta)  ;; Set the Command key to act as the Meta key.
       (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font" :height 50))
@@ -626,7 +626,7 @@
 
 
     
-    (setq org-preview-latex-image-directory "~/Google Drive/My Drive/ltximg/")
+    (setq org-preview-latex-image-directory "~/mnt/gdrive/ltximg/")
 
 
     ;; collapses headline when in subtree on normal text
@@ -705,26 +705,38 @@
                (setq-local completion-at-point-functions nil))
       (lsp)))
 #+end_src
+** Envrc
+#+begin_src emacs-lisp
+  (use-package envrc
+    :ensure t
+    :hook (after-init . envrc-global-mode))
+#+end_src
 ** Eglot
 #+begin_src emacs-lisp
-    (use-package eglot
-      :ensure t
-      :config
-      (add-to-list 'eglot-server-programs
-               '((rust-ts-mode rust-mode) .
-                 ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
-      :hook ((c-mode . eglot-ensure)
-             (c++-mode . eglot-ensure)
-             (c-ts-mode . eglot-ensure)
-             (c++-ts-mode . eglot-ensure)
-             (c-or-c++-mode . eglot-ensure)
-             (tsx-ts-mode . eglot-ensure)
-             (js-mode . eglot-ensure)
-             (js-ts-mode . eglot-ensure)
-             (markdown-mode . eglot-ensure)
-             (markdown-ts-mode . eglot-ensure)
-             (racket-mode . eglot-ensure)
-             (nix-ts-mode . eglot-ensure)))
+          (use-package eglot
+            :ensure t
+            :config
+            (add-to-list 'eglot-server-programs
+                     '((c-mode c++-mode c-ts-mode c++-ts-mode c-or-c++-mode)
+                       . ("clangd" "--query-driver=/run/current-system/sw/bin/c++")))
+            (add-to-list 'eglot-server-programs
+                     '((rust-ts-mode rust-mode) .
+                       ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
+            :hook ((c-mode . eglot-ensure)
+                   (c++-mode . eglot-ensure)
+                   (c-ts-mode . eglot-ensure)
+                   (c++-ts-mode . eglot-ensure)
+                   (c-or-c++-mode . eglot-ensure)
+                   (tsx-ts-mode . eglot-ensure)
+                   (js-mode . eglot-ensure)
+                   (js-ts-mode . eglot-ensure)
+                   (markdown-mode . eglot-ensure)
+                   (markdown-ts-mode . eglot-ensure)
+                   (racket-mode . eglot-ensure)
+                   (nix-ts-mode . eglot-ensure)
+                   (web-mode . eglot-ensure)
+                   (vue-ts-mode . eglot-ensure)
+                   (vue-mode . eglot-ensure)))
 #+end_src
 * External
 ** User Interface
@@ -868,7 +880,7 @@
   :config
   (setq indent-guide-char "│"))    ;; Set the character used for the indent guide.
 #+end_src
-*** Doom-modeline 
+*** COMMENT Doom-modeline 
 #+begin_src emacs-lisp
 ;;; DOOM MODELINE
 ;; The `doom-modeline' package provides a sleek, modern mode-line that is visually appealing
@@ -899,49 +911,44 @@
 ;;    Packages     : %s
  (emacs-init-time) (length (hash-table-keys straight--recipe-cache)))))) (bootstrap-version t)] |tramp-register-archive-autoload-file-name-handler |magit-maybe-define-global-key-bindings |table--make-cell-map |
 
-*** COMMENT Nano-modeline
+*** Nano-modeline
 #+begin_src emacs-lisp
 
   ;; Hide the standard mode-line globally. Must be setq-default since
   ;; mode-line-format is buffer-local — plain setq only affects one buffer.
+(use-package nano-modeline
+  :ensure t
+  :after nano-theme
+  :hook
+  (prog-mode            . nano-modeline-prog-mode)
+  (text-mode            . nano-modeline-text-mode)
+  (org-mode             . nano-modeline-org-mode)
+  (pdf-view-mode        . nano-modeline-pdf-mode)
+  (mu4e-headers-mode    . nano-modeline-mu4e-headers-mode)
+  (mu4e-view-mode       . nano-modeline-mu4e-message-mode)
+  (elfeed-show-mode     . nano-modeline-elfeed-entry-mode)
+  (elfeed-search-mode   . nano-modeline-elfeed-search-mode)
+  (term-mode            . nano-modeline-term-mode)
+  (xwidget-webkit-mode  . nano-modeline-xwidget-mode)
+  (messages-buffer-mode . nano-modeline-message-mode)
+  (org-capture-mode     . nano-modeline-org-capture-mode)
+  (org-agenda-mode      . nano-modeline-org-agenda-mode)
+  :init
   (setq-default mode-line-format nil)
-  (use-package nano-modeline
-    :ensure t
-    :after nano-theme
-    :hook
-    (prog-mode            . nano-modeline-prog-mode)
-    (text-mode            . nano-modeline-text-mode)
-    (org-mode             . nano-modeline-org-mode)
-    (pdf-view-mode        . nano-modeline-pdf-mode)
-    (mu4e-headers-mode    . nano-modeline-mu4e-headers-mode)
-    (mu4e-view-mode       . nano-modeline-mu4e-message-mode)
-    (elfeed-show-mode     . nano-modeline-elfeed-entry-mode)
-    (elfeed-search-mode   . nano-modeline-elfeed-search-mode)
-    (term-mode            . nano-modeline-term-mode)
-    (xwidget-webkit-mode  . nano-modeline-xwidget-mode)
-    (messages-buffer-mode . nano-modeline-message-mode)
-    (org-capture-mode     . nano-modeline-org-capture-mode)
-    (org-agenda-mode      . nano-modeline-org-agenda-mode)
-    :init
-    (setq-default mode-line-format nil)
-    :custom
-    :config
-    (require 'nano-modeline)
-    (nano-modeline-prog-mode t)
-    ;; Mode hooks only fire on mode entry, not for buffers already open at startup.
-    ;; Walk all buffers once after init to apply the correct nano-modeline variant.
-    (add-hook 'after-init-hook
-              (lambda ()
-                (dolist (buf (buffer-list))
-                  (with-current-buffer buf
-                    (when (fboundp 'nano-modeline-prog-mode)
-                      (cond
-                       ((derived-mode-p 'org-mode)  (nano-modeline-org-mode))
-                       ((derived-mode-p 'prog-mode) (nano-modeline-prog-mode))
-                       ((derived-mode-p 'text-mode) (nano-modeline-text-mode))))))))
-    :hook
-    (after-init . nano-modeline-prog-mode))
-
+  :config
+  (require 'nano-modeline)
+  (nano-modeline-prog-mode t) ;; sets a sane default before any hook fires
+  ;; Mode hooks only fire on mode entry, not for buffers already open at startup.
+  ;; Walk all buffers once after init to apply the correct nano-modeline variant.
+  (add-hook 'after-init-hook
+            (lambda ()
+              (dolist (buf (buffer-list))
+                (with-current-buffer buf
+                  (when (fboundp 'nano-modeline-prog-mode)
+                    (cond
+                     ((derived-mode-p 'org-mode)  (nano-modeline-org-mode))
+                     ((derived-mode-p 'prog-mode) (nano-modeline-prog-mode))
+                     ((derived-mode-p 'text-mode) (nano-modeline-text-mode)))))))))
 #+end_src
 
 #+RESULTS:
@@ -1716,6 +1723,14 @@ orig-result)))
   (use-package nix-ts-mode
     :ensure t)
 #+end_src
+*** web-mode
+#+begin_src emacs-lisp
+  (use-package web-mode
+    :ensure t)
+
+  (use-package vue-mode
+    :ensure t)
+#+end_src
 *** Dotenv 
 #+begin_src emacs-lisp
   ;;; DOTENV
@@ -2218,22 +2233,18 @@ orig-result)))
 
     ;; using custom-set-faces instead of :custom-face due to catppuccin-get-color function calls
     (custom-set-faces
-     `(diff-hl-change ((t (:background unspecified :foreground ,(catppuccin-get-color 'blue)))))
-     `(diff-hl-delete ((t (:background unspecified :foreground ,(catppuccin-get-color 'red)))))
-     `(diff-hl-insert ((t (:background unspecified :foreground ,(catppuccin-get-color 'green)))))
-     `(window-divider ((t (:foreground ,(catppuccin-get-color 'overlay0)))))
-     `(mode-line ((t (:background ,(catppuccin-get-color 'mantle) :foreground unspecified))))
-     `(mode-line-inactive ((t (:background ,(catppuccin-get-color 'mantle) :foreground unspecified))))
-     `(mode-line-inactive ((t (:background ,(catppuccin-get-color 'mantle) :foreground unspecified)))))
+     `(diff-hl-change ((t (:background unspecified :foreground "#89b4fa"))))
+     `(diff-hl-delete ((t (:background unspecified :foreground "#f38ba8"))))
+     `(diff-hl-insert ((t (:background unspecified :foreground "#a6e3a1"))))
+     `(window-divider ((t (:foreground ,nano-dark-subtle))))
+     `(vertical-border ((t (:foreground "#ffffff"))))
+     `(mode-line ((t (:background ,nano-dark-background :foreground unspecified))))
+     `(mode-line-inactive ((t (:background ,nano-dark-background :foreground unspecified)))))
 
     (custom-set-variables
      '(window-divider-default-bottom-width 1)
      '(window-divider-default-places t)
-     '(window-divider-default-right-width 1)
-     '(window-divider-mode t))
-
-    ;; Load the Catppuccin theme without prompting for confirmation.
-    (load-theme 'catppuccin :no-confirm)
+     '(window-divider-default-right-width 1))
     )
 #+end_src
 
@@ -2254,14 +2265,17 @@ orig-result)))
     (require 'nano-theme-support)
     (nano-mode)
     :custom
-    (nano-dark-background "#191c24") ;;"#191c24")
-    (nano-dark-highlight "#191c24") ;;"#191c24")
+    (nano-dark-background "#000a0f") ;;"#191c24")
+    (nano-dark-highlight "#071014") ;;"#191c24")
+    (nano-dark-subtle "#101f26") ;;"#191c24")
     :config
+    (window-divider-mode -1)
     (load-theme 'nano-dark t)
     (set-face-attribute 'bold-italic nil :weight 'normal :slant 'italic)
     (set-face-attribute 'italic nil :weight 'light :slant 'italic)
     (setq nano-fonts-use nil)
     (load-theme 'nano-dark t)
+    (set-face-attribute 'vertical-border nil :foreground "#474747")
     ;; nano-mode sets frame params via default-frame-alist, which only affects new
     ;; frames.  Apply them to the already-existing initial frame after init completes.
     (add-hook 'after-init-hook
@@ -2288,7 +2302,7 @@ orig-result)))
   ;; (set-face-attribute 'mode-line nil :background "#0b181e")
   ;; (set-face-attribute 'mode-line-inactive nil :background "#0b181e")
 
-  (set-frame-parameter nil 'alpha-background 0.8) 
+  (set-frame-parameter nil 'alpha-background 0.9) 
 #+end_src
 
 #+RESULTS:
@@ -2581,12 +2595,12 @@ orig-result)))
       (kbd "SPC f n")  ; SPC is your leader
       (lambda ()
         (interactive)
-        (find-file "~/Google Drive/My Drive/org/notes.org")))
+        (find-file "~/mnt/gdrive/org/notes.org")))
     (evil-define-key 'normal 'global
       (kbd "SPC f w")  ; SPC is your leader
       (lambda ()
         (interactive)
-        (find-file "~/Google Drive/My Drive/org/work.org")))
+        (find-file "~/mnt/gdrive/org/work.org")))
     (evil-define-key 'normal 'global
       (kbd "SPC f r")  ; SPC is your leader
       (lambda ()

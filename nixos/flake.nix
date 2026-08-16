@@ -3,25 +3,34 @@
 
   inputs = {
 
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-26.05";
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nur = {
+      url = "github:nix-community/NUR";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, ... }:
+  outputs = { self, nixpkgs, home-manager, nur, ... }:
   {
     nixosConfigurations.nixos = 
       nixpkgs.lib.nixosSystem {
 
-        system = "aarch64-linux";
+        system = "x86_64-linux";
 
-	modules = [
+        modules = [
           ./configuration.nix
 
-	  home-manager.nixosModules.home-manager
+        home-manager.nixosModules.home-manager
+        # Adds the NUR overlay
+        nur.modules.nixos.default
+        # NUR modules can be imported directly:
+        nur.repos.iopq.modules.nixos.xraya
 
 	  {
 	    home-manager.useGlobalPkgs = true;
