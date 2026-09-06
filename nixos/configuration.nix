@@ -13,6 +13,7 @@
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
+  boot.loader.grub.useOSProber = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
   systemd.sleep.settings.Sleep = {
@@ -32,6 +33,8 @@
     HandleLidSwitch = "suspend";
     HandlePowerKey = "hibernate";
   };
+
+  services.timesyncd.enable = true;
 
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -81,15 +84,15 @@
   fileSystems."/mnt/hdd" = {
     device = "/dev/disk/by-uuid/01DA933CDEFE0080";
     fsType = "ntfs-3g"; # "ntfs3";  # modern in-kernel NTFS driver, faster than ntfs-3g
-    options = [ "rw" "uid=1000" "gid=100" "umask=022" "nofail" ];
+    options = [ "rw" "uid=1000" "gid=100" "umask=000" "nofail" ];
   };
   fileSystems."/mnt/windows" = {
     device = "/dev/disk/by-uuid/ACBCCF82BCCF4614";
     fsType = "ntfs3";
-    options = [ "ro" "uid=1000" "gid=100" "umask=022" "nofail" ];
-  };
-  # Allow unfree packages
+    options = [ "rw" "uid=1000" "gid=100" "umask=022" "nofail" ];
+  };  # allow unfree packages
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.android_sdk.accept_license = true;
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
@@ -155,13 +158,13 @@
   #   enable = true;
   #   enableSSHSupport = true;
   # };
-  hardware.parallels.enable = true;
   hardware.graphics.enable = true;
   programs.hyprland.enable = true;
   programs.steam.enable = true;
   services.displayManager.sddm.enable = true;
   services.xserver.enable = true;
   services.xserver.videoDrivers = ["nvidia"];
+  programs.nix-ld.enable = true;
   hardware.nvidia = {
     modesetting.enable = true;
     powerManagement.enable = false;
@@ -200,5 +203,17 @@
     "nix-command"
     "flakes"
   ];
+
+  nix.settings = {
+    min-free = 5 * 1024 * 1024 * 1024;   # trigger GC below 5GB free
+    max-free = 15 * 1024 * 1024 * 1024;  # GC until 15GB free
+    keep-outputs = false;
+    keep-derivations = false;
+  };
+  nix.gc = {
+    automatic = true;
+    dates = "daily";
+    options = "--delete-older-than 7d";
+  };
 
 }

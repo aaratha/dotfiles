@@ -1660,7 +1660,7 @@
 ;; (set-face-attribute 'mode-line nil :background "#0b181e")
 ;; (set-face-attribute 'mode-line-inactive nil :background "#0b181e")
 
-(set-frame-parameter nil 'alpha-background 0.9)
+(set-frame-parameter nil 'alpha-background 0.75)
 
 ;;; NERD-ICONS-CORFU
  ;; Provides Nerd Icons to be used with CORFU.

@@ -57,6 +57,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-davinci": {
+      "locked": {
+        "lastModified": 1758410083,
+        "narHash": "sha256-f9Di87TN2FiOCrC0usE0nO/fMILJAh/7q4WRdrAFjoY=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "d457818da697aa7711ff3599be23ab8850573a46",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "d457818da697aa7711ff3599be23ab8850573a46",
+        "type": "github"
+      }
+    },
     "nur": {
       "inputs": {
         "flake-parts": "flake-parts",
@@ -82,6 +98,7 @@
       "inputs": {
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-davinci": "nixpkgs-davinci",
         "nur": "nur"
       }
     }
