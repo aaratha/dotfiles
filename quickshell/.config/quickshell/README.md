@@ -19,7 +19,7 @@ https://github.com/user-attachments/assets/55c47c05-34b6-402c-aea7-42a369b86828
 
 | Module | What it does |
 |--------|-------------|
-| **Bar** | clock, workspaces, active window title, volume, brightness, network, battery, system tray, now-playing indicator |
+| **Bar** | clock, workspaces, active window title, volume, brightness, network, battery, system tray, now-playing indicator, plus quick-settings popups for network and audio |
 | **App Launcher** | rofi drun-style application launcher |
 | **Notifications** | dunst-style notification daemon with popups |
 | **OSD** | on-screen display for volume and brightness changes, auto-hides |
@@ -79,6 +79,17 @@ the bar will use its built-in Tokyo Night Night colors by default. to wire it up
 you can also toggle the bar via IPC:
 ```
 qs ipc call bar toggle
+```
+
+clicking the network or volume pill opens an illogical-impulse-style quick-settings popup, anchored top-right below the bar:
+
+- **network popup** — toggle Wi-Fi on/off, rescan, and click a network to connect. secured networks you haven't saved prompt for a password inline; the active network shows a checkmark and can be clicked again to disconnect.
+- **audio popup** — drag the slider or click the icon to mute, then pick the default output/input device from the lists below (anything PipeWire reports as a sink or source).
+
+both can also be toggled via IPC (handy for a keybind):
+```
+qs ipc call networkmenu toggle
+qs ipc call audiomenu toggle
 ```
 
 ### app launcher

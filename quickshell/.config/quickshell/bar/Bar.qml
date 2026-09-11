@@ -12,6 +12,14 @@ Scope {
   property var theme: DefaultTheme {}
   property string font: "Hack Nerd Font"
   property bool barVisible: true
+  property bool audioMenuOpen: false
+  property bool networkMenuOpen: false
+  property var audioMenuScreen: null
+  property var networkMenuScreen: null
+  property real audioMenuAnchorX: 0
+  property real audioMenuAnchorY: 0
+  property real networkMenuAnchorX: 0
+  property real networkMenuAnchorY: 0
 
   // MPRIS active player
   property var activePlayer: {
@@ -26,6 +34,22 @@ Scope {
   IpcHandler {
     target: "bar"
     function toggle(): void { root.barVisible = !root.barVisible; }
+  }
+
+  IpcHandler {
+    target: "networkmenu"
+    function toggle(): void {
+      root.networkMenuOpen = !root.networkMenuOpen;
+      if (root.networkMenuOpen) root.audioMenuOpen = false;
+    }
+  }
+
+  IpcHandler {
+    target: "audiomenu"
+    function toggle(): void {
+      root.audioMenuOpen = !root.audioMenuOpen;
+      if (root.audioMenuOpen) root.networkMenuOpen = false;
+    }
   }
 
   PwObjectTracker {
@@ -82,6 +106,7 @@ Scope {
     model: Quickshell.screens
 
     PanelWindow {
+      id: barWindow
       required property var modelData
       screen: modelData
       visible: root.barVisible
@@ -287,12 +312,15 @@ Scope {
 
           // Volume
           Rectangle {
+            id: volumePill
             height: 24
             width: volContent.width + 12
             radius: 12
-            color: root.theme.bgSurface
+            color: root.audioMenuOpen ? root.theme.bgSelected : root.theme.bgSurface
 
-            Accessible.role: Accessible.StaticText
+            Behavior on color { ColorAnimation { duration: 100 } }
+
+            Accessible.role: Accessible.Button
             Accessible.name: {
               const sink = Pipewire.defaultAudioSink;
               if (!sink || !sink.audio) return "Volume";
@@ -340,10 +368,19 @@ Scope {
             MouseArea {
               anchors.fill: parent
               cursorShape: Qt.PointingHandCursor
-              acceptedButtons: Qt.LeftButton
-              onClicked: {
-                const sink = Pipewire.defaultAudioSink;
-                if (sink && sink.audio) sink.audio.muted = !sink.audio.muted;
+              acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+              onClicked: (mouse) => {
+                if (mouse.button === Qt.MiddleButton) {
+                  const sink = Pipewire.defaultAudioSink;
+                  if (sink && sink.audio) sink.audio.muted = !sink.audio.muted;
+                } else {
+                  const pos = volumePill.mapToItem(null, volumePill.width / 2, volumePill.height);
+                  root.audioMenuAnchorX = pos.x;
+                  root.audioMenuAnchorY = pos.y;
+                  root.audioMenuScreen = barWindow.modelData;
+                  root.audioMenuOpen = !root.audioMenuOpen;
+                  root.networkMenuOpen = false;
+                }
               }
               onWheel: (wheel) => {
                 const sink = Pipewire.defaultAudioSink;
@@ -445,11 +482,15 @@ Scope {
 
             // Network
             Rectangle {
+              id: networkPill
               height: 24
               width: netContent.width + 12
               radius: 12
-              color: root.theme.bgSurface
-              Accessible.role: Accessible.StaticText
+              color: root.networkMenuOpen ? root.theme.bgSelected : root.theme.bgSurface
+
+              Behavior on color { ColorAnimation { duration: 100 } }
+
+              Accessible.role: Accessible.Button
               Accessible.name: {
                 if (SystemInfo.networkType === "ethernet") return "Network: Ethernet"
                 if (SystemInfo.networkType === "wifi") return "Network: WiFi " + SystemInfo.networkInfo
@@ -478,6 +519,19 @@ Scope {
                   color: root.theme.textPrimary
                   font.pixelSize: 11
                   font.family: root.font
+                }
+              }
+
+              MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                  const pos = networkPill.mapToItem(null, networkPill.width / 2, networkPill.height);
+                  root.networkMenuAnchorX = pos.x;
+                  root.networkMenuAnchorY = pos.y;
+                  root.networkMenuScreen = barWindow.modelData;
+                  root.networkMenuOpen = !root.networkMenuOpen;
+                  root.audioMenuOpen = false;
                 }
               }
             }
@@ -614,6 +668,34 @@ Scope {
         }
       }
 
+    }
+  }
+
+  Variants {
+    model: Quickshell.screens
+
+    NetworkMenuPanel {
+      open: root.networkMenuOpen
+      menuScreen: root.networkMenuScreen
+      anchorX: root.networkMenuAnchorX
+      anchorY: root.networkMenuAnchorY
+      theme: root.theme
+      font: root.font
+      onCloseRequested: root.networkMenuOpen = false
+    }
+  }
+
+  Variants {
+    model: Quickshell.screens
+
+    AudioMenuPanel {
+      open: root.audioMenuOpen
+      menuScreen: root.audioMenuScreen
+      anchorX: root.audioMenuAnchorX
+      anchorY: root.audioMenuAnchorY
+      theme: root.theme
+      font: root.font
+      onCloseRequested: root.audioMenuOpen = false
     }
   }
 }

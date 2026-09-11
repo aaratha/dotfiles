@@ -308,6 +308,8 @@ hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
 hl.bind(mainMod .. " + space", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
 hl.bind(mainMod .. " + SHIFT + T", hl.dsp.exec_cmd("qs ipc call theme toggle"))
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("qs ipc call wallpaper toggle"))
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("qs ipc call networkmenu toggle"))
+hl.bind(mainMod .. " + A", hl.dsp.exec_cmd("qs ipc call audiomenu toggle"))
 hl.bind(mainMod .. " + H", hl.dsp.exec_cmd("helium"))
 
 
