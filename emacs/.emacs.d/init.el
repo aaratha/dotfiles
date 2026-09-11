@@ -1265,6 +1265,9 @@
 (use-package vue-mode
   :ensure t)
 
+(use-package rust-mode
+  :ensure t)
+
 ;;; DOTENV
 ;; A simple major mode to provide .env files with color highlighting
 (use-package dotenv-mode

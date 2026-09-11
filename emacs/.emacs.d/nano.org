@@ -1731,6 +1731,36 @@ orig-result)))
   (use-package vue-mode
     :ensure t)
 #+end_src
+*** Rust-mode
+#+begin_src emacs-lisp
+  (use-package rust-mode
+    :ensure t
+    :init
+    (setq rust-format-on-save t
+          rust-format-show-buffer nil
+          rust-format-goto-problem t
+          rust-indent-offset 4
+          rust-indent-method-chain t
+          rust-indent-where-clause nil
+          rust-indent-return-type-to-arguments t
+          rust-cargo-default-arguments "--all-targets --all-features"
+          rust-cargo-clippy-default-arguments '("--all-targets" "--all-features"))
+    :config
+    (defun ek/rust-mode-setup ()
+      (setq-local prettify-symbols-alist rust-prettify-symbols-alist)
+      (prettify-symbols-mode 1)
+      (electric-pair-local-mode 1))
+
+    (defun ek/rust-ts-mode-setup ()
+      (setq-local prettify-symbols-alist rust-prettify-symbols-alist)
+      (prettify-symbols-mode 1)
+      (electric-pair-local-mode 1)
+      (setq-local rust-format-on-save t)
+      (add-hook 'before-save-hook #'rust-format-buffer nil t))
+
+    (add-hook 'rust-mode-hook #'ek/rust-mode-setup)
+    (add-hook 'rust-ts-mode-hook #'ek/rust-ts-mode-setup))
+#+end_src
 *** Dotenv 
 #+begin_src emacs-lisp
   ;;; DOTENV
@@ -2855,4 +2885,3 @@ orig-result)))
   (when (boundp 'ptkg-wait-for-event-timout)
     (setq pgtk-wait-for-event-timout 0.001))
 #+end_src
-
