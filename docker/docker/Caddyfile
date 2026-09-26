@@ -1,5 +1,24 @@
-jellyfin.cinebrief.com {
+jellyfin.aaratha.com {
     encode gzip
     reverse_proxy jellyfin:8096
 }
 
+glance.aaratha.com {
+    encode gzip
+    reverse_proxy glance:8080
+}
+
+audiobookshelf.aaratha.com {
+    encode gzip
+    reverse_proxy audiobookshelf:80
+}
+
+calibre.aaratha.com {
+    encode gzip
+    reverse_proxy calibre-web-automated:8083
+}
+
+bookbridge.aaratha.com {
+    encode gzip
+    reverse_proxy abs-kosync:5757
+}

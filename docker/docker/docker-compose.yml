@@ -1,23 +1,33 @@
 services:
   # ────────────────────────────────
-  # Gluetun NordVPN (for qBittorrent)
+  # Gluetun ProtonVPN (for qBittorrent)
   # ────────────────────────────────
   gluetun:
     image: qmcgaw/gluetun:latest
     container_name: gluetun
     cap_add:
-      - NET_ADMIN # required for VPN
+      - NET_ADMIN
     environment:
-      - VPNSP=NORDVPN
-      - USER=${NORDVPN_USER}
-      - PASSWORD=${NORDVPN_PASSWORD}
       - TZ=America/New_York
-      - OPENVPN_NETWORK=10.0.0.0/8 # optional, internal network for routed containers
-      - SERVER_REGIONS=United_States # or pick your preferred NordVPN region
+      - UPDATER_PERIOD=24h
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=openvpn
+      - BLOCK_MALICIOUS=off
+      - OPENVPN_USER=${OPENVPN_USER}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      - OPENVPN_CIPHERS=AES-256-GCM
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - PORT_FORWARD_ONLY=on
+      - VPN_PORT_FORWARDING=on
+      - VPN_PORT_FORWARDING_UP_COMMAND=/bin/sh -c 'wget -O- --retry-connrefused --post-data "json={\"listen_port\":{{PORTS}}}" http://127.0.0.1:8080/api/v2/app/setPreferences 2>&1'
+      - SERVER_COUNTRIES=United States
+      - UPDATER_PROTONVPN_EMAIL=aseemratha@gmail.com
+      - UPDATER_PROTONVPN_PASSWORD=4y4PbCJ<K9VmwYwq
     ports:
-      - "8118:8118" # optional HTTP proxy
-      - "8388:8388" # optional SOCKS5 proxy
       - "8080:8080"
+      - "8118:8118"
+      - "8388:8388"
+      - "8084:8084"
     volumes:
       - /home/aaratha/docker/configs/gluetun:/gluetun
     restart: unless-stopped
@@ -29,6 +39,11 @@ services:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
     network_mode: "service:gluetun"
+    labels:
+      glance.name: qBittorrent
+      glance.icon: si:qbittorrent
+      glance.url: http://homeserver.local:8080
+      glance.description: Torrent client
     depends_on:
       - gluetun
     environment:
@@ -48,6 +63,11 @@ services:
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
+    labels:
+      glance.name: Radarr
+      glance.icon: si:radarr
+      glance.url: http://homeserver.local:7878
+      glance.description: Movie management
     ports:
       - "7878:7878"
     depends_on:
@@ -68,6 +88,11 @@ services:
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
+    labels:
+      glance.name: Sonarr
+      glance.icon: si:sonarr
+      glance.url: http://homeserver.local:8989
+      glance.description: TV Management
     ports:
       - "8989:8989"
     depends_on:
@@ -88,6 +113,11 @@ services:
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
+    labels:
+      glance.name: Prowlarr
+      glance.icon: https://iconduck.com/icons/252994/prowlarr
+      glance.url: http://homeserver.local:9696
+      glance.description: Torrent trackers
     ports:
       - "9696:9696"
     environment:
@@ -106,6 +136,11 @@ services:
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
+    labels:
+      glance.name: Jellyfin
+      glance.icon: si:jellyfin
+      glance.url: http://homeserver.local:8096
+      glance.description: Movies & shows
     ports:
       - "8096:8096"
     environment:
@@ -114,6 +149,7 @@ services:
       - TZ=America/New_York
     volumes:
       - /home/aaratha/docker/configs/jellyfin:/config
+      - /home/aaratha/docker/configs/jellyfin/index.html:/usr/share/jellyfin/web/index.html
       - /media/movies:/media/movies
       - /media/tv:/media/tv
     restart: unless-stopped
@@ -124,6 +160,11 @@ services:
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
+    labels:
+      glance.name: Portainer
+      glance.icon: https://svgicons.com/icon/189622/portainer
+      glance.url: http://homeserver.local:9000
+      glance.description: Container management
     ports:
       - "9000:9000"
       - "8000:8000"
@@ -146,13 +187,11 @@ services:
       - LOG_HTML=${LOG_HTML:-false}
       - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
       - TZ=Europe/London
-
     ports:
       - "${PORT:-8191}:8191"
     restart: unless-stopped
     sysctls:
       - net.ipv6.conf.all.disable_ipv6=1
-
     # byparr:
     #   image: ghcr.io/thephaseless/byparr:latest
     #   container_name: byparr
@@ -166,9 +205,10 @@ services:
     #     - USE_XVFB=true
     #     #- PROXY=http://username:password@proxyhost:port
     #   restart: unless-stopped
-    # ────────────────────────────────
-    # Caddy (Reverse Proxy + HTTPS)
-    # ────────────────────────────────
+
+  # ────────────────────────────────
+  # Caddy (Reverse Proxy + HTTPS)
+  # ────────────────────────────────
   caddy:
     image: caddy:latest
     container_name: caddy
@@ -191,6 +231,11 @@ services:
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
+    labels:
+      glance.name: Bazarr
+      glance.icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/bazarr.svg
+      glance.url: http://homeserver.local:6767
+      glance.description: Subtitles
     depends_on:
       - radarr
       - prowlarr
@@ -207,6 +252,165 @@ services:
       - /media/tv:/tv
       - /home/aaratha/downloads:/downloads
     restart: unless-stopped
+
+  # Suwayomi
+
+  suwayomi:
+    image: ghcr.io/suwayomi/suwayomi-server:stable
+    container_name: suwayomi
+    labels:
+      glance.name: Suwayomi
+      glance.icon: https://dashboardicons.com/icons/suwayomi
+      glance.url: http://homeserver.local:4567
+      glance.description: Manga
+    environment:
+      - TZ=America/New_York
+      - FLARESOLVERR_ENABLED=true
+      - WEB_UI_ENABLED=true
+      - AUTO_DOWNLOAD_CHAPTERS=true
+      - AUTO_DOWNLOAD_EXCLUDE_UNREAD=false
+      - AUTO_DOWNLOAD_NEW_CHAPTERS_LIMIT=10
+      - DOWNLOAD_AS_CBZ=true
+    volumes:
+      - /media/manga:/home/suwayomi/.local/share/Tachidesk/downloads
+      - /home/aaratha/docker/configs/suwayomi:/home/suwayomi/.local/share/Tachidesk
+    ports:
+      - "4567:4567"
+    restart: unless-stopped
+
+  glance:
+    container_name: glance
+    image: glanceapp/glance
+    restart: unless-stopped
+    volumes:
+      - /home/aaratha/docker/configs/glance/config:/app/config
+      - /home/aaratha/docker/configs/glance/assets:/app/assets
+      - /etc/localtime:/etc/localtime:ro
+      # Optionally, also mount docker socket if you want to use the docker containers widget
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "1234:8080"
+    env_file: .env
+
+  gatus:
+    container_name: gatus
+    image: twinproduction/gatus
+    ports:
+      - "8888:8080"
+    volumes:
+      - /home/aaratha/docker/configs/gatus/config:/config
+      - /home/aaratha/docker/configs/gatus/data:/data
+    restart: unless-stopped
+
+  audiobookshelf:
+    container_name: audiobookshelf
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    ports:
+      - 13378:80
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    volumes:
+      - /media/audiobooks:/audiobooks
+      - /home/aaratha/docker/configs/audiobookshelf/podcasts:/podcasts
+      - /home/aaratha/docker/configs/audiobookshelf/config:/config
+      - /home/aaratha/docker/configs/audiobookshelf/metadata:/metadata
+    restart: unless-stopped
+
+  calibre-web-automated:
+    image: crocodilestick/calibre-web-automated:latest
+    container_name: calibre-web-automated
+    labels:
+      labels.name: Calibre
+      glance.icon: si:calibreweb
+      glance.url: http://homeserver.local:8083
+      glance.description: Book Management
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+      # Hardcover API Key required for Hardcover as a Metadata Provider, get one here: https://docs.hardcover.app/api/getting-started/
+      - HARDCOVER_TOKEN=${HARDCOVER_AUTH}
+      # If your library is on a network share (e.g., NFS/SMB), disable WAL to reduce locking issues
+      # Accepts: true/false (default: false)
+      - NETWORK_SHARE_MODE=false
+      # Override the default port (8083) for the web server.
+      # Accepts any valid port number.
+      # - CWA_PORT_OVERRIDE=8083
+    volumes:
+      - /home/aaratha/docker/configs/calibre/config:/config
+      # This is an ingest dir, NOT a library one. Anything added here will be automatically added to your library according to the settings you have configured in CWA Settings page. All files placed here are REMOVED AFTER PROCESSING
+      - /media/ingest:/cwa-book-ingest
+      # If you don't have an existing library, CWA will automatically create one at the bind provided here
+      - /media/books:/calibre-library # Default destination for book downloads
+      # If you use calibre plugins, you can bind your plugins folder here to have CWA attempt to add them to its workflow (WIP)
+      # If you are starting with a fresh install, you also need to copy customize.py.json to the Calibre config volume above, in /path/to/config/folder/.config/calibre/customize.py.json, see the note below for more info
+      - /home/aaratha/docker/configs/calibre/config/.config/calibre/plugins:/config/.config/calibre/plugins
+    ports:
+      - 8083:8083
+      # If you set CWA_PORT_OVERRIDE to a port below 1024, you may need to uncomment the following line:
+      # cap_add:
+      #   - NET_BIND_SERVICE
+    restart: unless-stopped
+
+  shelfmark:
+    image: ghcr.io/calibrain/shelfmark:latest
+    container_name: shelfmark
+    network_mode: "service:gluetun"
+    labels:
+      labels.name: Shelfmark
+      glance.icon: si:gitbook
+      glance.url: http://homeserver.local:8084
+      glance.description: Book WebUI
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    restart: unless-stopped
+    volumes:
+      - /media/ingest:/books # Default destination for book downloads
+      - /media/audiobooks:/audiobooks
+      - /home/aaratha/docker/configs/shelfmark/config:/config
+      # Required for torrent / usenet - path must match your download client's volume exactly
+      - /home/aaratha/downloads:/downloads
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+
+  abs-kosync:
+    container_name: abs_kosync
+    image: ghcr.io/cporcellijr/abs-kosync-bridge:latest
+    restart: unless-stopped
+    depends_on:
+      - audiobookshelf
+      - calibre-web-automated
+    ports:
+      - "8085:5757"
+      # - "5758:5758"  # Optional: expose the sync-only port when using KOSYNC_PORT=5758
+    environment:
+      - TZ=America/New_York
+      - LOG_LEVEL=INFO
+      # - KOSYNC_PORT=5758  # Optional: enable split-port mode
+      # Configure ABS, KOSync, Grimmory, BookOrbit, CWA, Storyteller, and other services in the Web UI.
+      - CWA_ENABLED=true
+      - CWA_SYNC_ENABLED=true
+      - ABS_SERVER=http://audiobookshelf:80
+      - CWA_SERVER=http://calibre-web-automated:8083
+      - CALIBRE_LIBRARY_PATH=/books
+    volumes:
+      - /home/aaratha/docker/configs/abs-kosync/config:/data
+      - /media/books:/books
+      - /media/audiobooks:/audiobooks
+  aiostreams:
+    image: ghcr.io/viren070/aiostreams:latest
+    container_name: aiostreams
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    env_file:
+      - .env
+    volumes:
+      - /home/aaratha/docker/configs/aiostreams/config/:/app/data
 
 volumes:
   caddy_data:
