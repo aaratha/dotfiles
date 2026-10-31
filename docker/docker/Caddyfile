@@ -1,5 +1,31 @@
+<<<<<<< HEAD
 jellyfin.cinebrief.com {
+=======
+jellyfin.aaratha.com {
+>>>>>>> origin/main
     encode gzip
     reverse_proxy jellyfin:8096
 }
 
+<<<<<<< HEAD
+=======
+glance.aaratha.com {
+    encode gzip
+    reverse_proxy glance:8080
+}
+
+audiobookshelf.aaratha.com {
+    encode gzip
+    reverse_proxy audiobookshelf:80
+}
+
+calibre.aaratha.com {
+    encode gzip
+    reverse_proxy calibre-web-automated:8083
+}
+
+bookbridge.aaratha.com {
+    encode gzip
+    reverse_proxy abs-kosync:5757
+}
+>>>>>>> origin/main

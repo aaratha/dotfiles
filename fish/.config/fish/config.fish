@@ -18,6 +18,7 @@ end
 set -x JAVA_HOME (/usr/libexec/java_home -v 25)
 set -x PATH $JAVA_HOME/bin $PATH
 
+<<<<<<< HEAD
 set brew_prefix (brew --prefix)
 
 # For lsp-booster to work in emacs
@@ -46,3 +47,7 @@ if not string match -q -- $PNPM_HOME $PATH
     set -gx PATH "$PNPM_HOME" $PATH
 end
 # pnpm end
+=======
+zoxide init fish | source
+starship init fish | source
+>>>>>>> origin/main

@@ -29,6 +29,9 @@ return {
       dim_inactive = {
         enabled = false, -- dims the background color of inactive window
       },
+      dim_inactive = {
+        enabled = false, -- dims the background color of inactive window
+      },
     },
   },
 
@@ -80,6 +83,66 @@ return {
           },
         },
         hidden = true,
+      },
+      zen = {
+        toggles = { dim = false },
+        on_open = function(win)
+          -- disable line numbers
+          vim.wo.number = false
+          vim.wo.relativenumber = false
+
+          -- enable wrap + breakindent when Zen opens
+          vim.wo.wrap = true
+          vim.wo.linebreak = true
+          vim.wo.breakindent = true
+          vim.wo.breakindentopt = "shift:2" -- Shift wrapped lines by 2 spaces
+
+          -- Toggle off tmux status line
+          if vim.env.TMUX then
+            vim.fn.system("tmux set -g status off")
+          end
+
+          -- Hide fold arrows on the left side
+          vim.wo.foldcolumn = "0"
+          vim.wo.signcolumn = "no"
+
+          -- Toggle indent guides off
+          Snacks.toggle.indent():toggle()
+        end,
+
+        on_close = function()
+          -- restore defaults after Zen closes
+          vim.wo.wrap = false
+          vim.wo.linebreak = false
+          vim.wo.breakindent = false
+
+          if vim.env.TMUX then
+            vim.fn.system("tmux set -g status on")
+          end
+
+          vim.wo.foldcolumn = "1" -- or "auto"
+          vim.wo.signcolumn = "yes"
+
+          Snacks.toggle.indent():toggle()
+        end,
+      },
+      styles = {
+        zen = {
+          enter = true,
+          fixbuf = false,
+          minimal = false,
+          width = 80,
+          height = 0,
+          backdrop = { transparent = true, blend = 40 },
+          keys = { q = false },
+          zindex = 40,
+          wo = {
+            winhighlight = "NormalFloat:Normal",
+          },
+          w = {
+            snacks_main = true,
+          },
+        },
       },
       zen = {
         toggles = { dim = false },
@@ -263,6 +326,7 @@ return {
       require("org-cycle-lite").setup()
     end,
   },
+<<<<<<< HEAD
 
   {
     "neovim/nvim-lspconfig",
@@ -289,4 +353,6 @@ return {
       require("scrollbar").setup()
     end,
   },
+=======
+>>>>>>> origin/main
 }

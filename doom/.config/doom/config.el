@@ -46,6 +46,7 @@
     (if (display-graphic-p frame)
         (load-theme 'doom-one t)
       (load-theme 'doom-solarized-transparent-term t))))
+<<<<<<< HEAD
 
 (add-hook 'after-make-frame-functions #'my/doom-theme-for-frame)
 (unless (display-graphic-p)
@@ -54,7 +55,12 @@
 (add-hook 'doom-load-theme-hook
           (lambda ()
             (set-face-background 'default "#000a0f")))
+=======
+>>>>>>> origin/main
 
+(add-hook 'after-make-frame-functions #'my/doom-theme-for-frame)
+(unless (display-graphic-p)
+  (my/doom-theme-for-frame (selected-frame)))
 
 (set-frame-parameter nil 'alpha-background 0.6) ; For current frame
 (set-frame-parameter nil 'ns-background-blur 20)
