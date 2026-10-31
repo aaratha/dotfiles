@@ -141,6 +141,10 @@ services:
       glance.icon: si:jellyfin
       glance.url: http://homeserver.local:8096
       glance.description: Movies & shows
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "991"
     ports:
       - "8096:8096"
     environment:
@@ -149,7 +153,7 @@ services:
       - TZ=America/New_York
     volumes:
       - /home/aaratha/docker/configs/jellyfin:/config
-      - /home/aaratha/docker/configs/jellyfin/index.html:/usr/share/jellyfin/web/index.html
+      # - /home/aaratha/docker/configs/jellyfin/index.html:/usr/share/jellyfin/web/index.html
       - /media/movies:/media/movies
       - /media/tv:/media/tv
     restart: unless-stopped
@@ -401,16 +405,45 @@ services:
       - /home/aaratha/docker/configs/abs-kosync/config:/data
       - /media/books:/books
       - /media/audiobooks:/audiobooks
-  aiostreams:
-    image: ghcr.io/viren070/aiostreams:latest
-    container_name: aiostreams
-    restart: unless-stopped
+  # aiostreams:
+  #   image: ghcr.io/viren070/aiostreams:latest
+  #   container_name: aiostreams
+  #   restart: unless-stopped
+  #   ports:
+  #     - 3000:3000
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - /home/aaratha/docker/configs/aiostreams/config/:/app/data
+  #
+  vintagestory-server:
+    image: ghcr.io/darkmatterproductions/vintagestory:latest
+    container_name: vintagestory-server
+    stdin_open: true
+    tty: true
     ports:
-      - 3000:3000
-    env_file:
-      - .env
+      - "42420:42420/tcp"
+      - "42420:42420/udp"
+      - "5000:5000/tcp"
     volumes:
-      - /home/aaratha/docker/configs/aiostreams/config/:/app/data
+      - /home/aaratha/docker/configs/vintagestory/data:/vintagestory/data
+    environment:
+      - ENABLE_DEBUG_LOGGING=false
+      - ENABLE_CHAT_LOGGING=true
+      - FORCE_REGENERATE_CONFIG=true
+      - VS_CFG_SERVER_NAME="buttercup server"
+      - VS_CFG_SERVER_DESCRIPTION="butter"
+      - VS_CFG_MAX_CLIENTS=16
+      - VS_CFG_ENFORCE_WHITELIST=1
+      # - VS_CFG_SERVER_PASSWORD=""
+      - VS_MODS=123882/BetterRuinsv0.6.4.zip,130070/CarryOnLib-1.22.0_v1.0.0-rc.1.zip,130071/CarryOn-1.22.0_v2.0.0-rc.1.zip,128112/rpvoicechat_2.6.6.zip,123216/rustboundmagic_4.0.7.zip,127670/ChiselTools1.17.9.zip
+      - VS_RCON_ENABLED=true
+      - VS_RCON_CLIENT_CFG_SECURITY_OAUTH_ENABLED=false
+      - VS_RCON_SERVER_CFG_PASSWORD=Rathahome1 # must match the line above
+      - VS_RCON_CLIENT_CFG_RCON_PASSWORD=Rathahome1 # must match the line above
+      - VS_RCON_CLIENT_CFG_SERVER_SECRET_KEY=random-string
+      - VS_RCON_CLIENT_CFG_SECURITY_DEFAULT_PASSWORD=Rathahome1
+    restart: unless-stopped
 
 volumes:
   caddy_data:

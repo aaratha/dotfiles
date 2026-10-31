@@ -20,7 +20,7 @@ starship init fish | source
 
 alias ls="eza --icons --group-directories-first"
 alias cd="z"
-alias cat="bat"
+alias cat="batcat"
 
 # set -gx ANTHROPIC_AUTH_TOKEN "test"
 # set -gx ANTHROPIC_BASE_URL "http://127.0.0.1:3456"

@@ -22,3 +22,8 @@ bookbridge.aaratha.com {
     encode gzip
     reverse_proxy abs-kosync:5757
 }
+
+manga.aaratha.com {
+    encode gzip
+    reverse_proxy suwayomi:4567
+}
