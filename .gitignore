@@ -1,3 +1,4 @@
 .env
 docker/docker/.env
 nvim/.config/gh/hosts.yml
+docker/docker/configs/
