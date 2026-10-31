@@ -239,10 +239,10 @@
   (initial-scratch-message "")                    ;; Clear the initial message in the *scratch* buffer.
   (ispell-dictionary "en_US")                     ;; Set the default dictionary for spell checking.
   (make-backup-files nil)                         ;; Disable creation of backup files.
-  (pixel-scroll-precision-mode t)                 ;; Enable precise pixel scrolling.
-  (pixel-scroll-precision-use-momentum nil)       ;; Disable momentum scrolling for pixel precision.
+  ;; (pixel-scroll-precision-mode t)                 ;; Enable precise pixel scrolling.
+  ;; (pixel-scroll-precision-use-momentum nil)       ;; Disable momentum scrolling for pixel precision.
   (ring-bell-function 'ignore)                    ;; Disable the audible bell.
-  (split-width-threshold 300)                     ;; Prevent automatic window splitting if the window width exceeds 300 pixels.
+  ;; (split-width-threshold 300)                     ;; Prevent automatic window splitting if the window width exceeds 300 pixels.
   (switch-to-buffer-obey-display-actions t)       ;; Make buffer switching respect display actions.
   (tab-always-indent 'complete)                   ;; Make the TAB key complete text instead of just indenting.
   (tab-width 4)                                   ;; Set the tab width to 4 spaces.
@@ -303,7 +303,7 @@
 
   :init                        ;; Initialization settings that apply before the package is loaded.
   (tool-bar-mode -1)           ;; Disable the tool bar for a cleaner interface.
-  (menu-bar-mode -1)           ;; Disable the menu bar for a more streamlined look.
+  ;; (menu-bar-mode -1)           ;; Disable the menu bar for a more streamlined look.
 
   (when scroll-bar-mode
     (scroll-bar-mode -1))      ;; Disable the scroll bar if it is active.
@@ -532,12 +532,12 @@
 
   (defun +org-cycle-only-current-subtree-h (&optional arg)
     "Toggle the local fold at the point, and no deeper.
-    `org-cycle's standard behavior is to cycle between three levels: collapsed,
-    subtree and whole document. This is slow, especially in larger org buffer. Most
-    of the time I just want to peek into the current subtree -- at most, expand
-    *only* the current subtree.
-    All my (performant) foldings needs are met between this and `org-show-subtree'
-    (on zO for evil users), and `org-cycle' on shift-TAB if I need it."
+     `org-cycle's standard behavior is to cycle between three levels: collapsed,
+     subtree and whole document. This is slow, especially in larger org buffer. Most
+     of the time I just want to peek into the current subtree -- at most, expand
+     *only* the current subtree.
+     All my (performant) foldings needs are met between this and `org-show-subtree'
+     (on zO for evil users), and `org-cycle' on shift-TAB if I need it."
     (interactive "P")
     (unless (or (eq this-command 'org-shifttab)
                 (and (bound-and-true-p org-cdlatex-mode)
@@ -596,6 +596,9 @@
   ;; collapses headline when in subtree on normal text
   ;; (setq org-cycle-emulate-tab 'white)
 
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((dot . t))) ; this line activates dot
 
   :config
   (my/apply-org-heading-faces)
@@ -679,6 +682,8 @@
          (js-ts-mode . eglot-ensure)
          (markdown-mode . eglot-ensure)
          (markdown-ts-mode . eglot-ensure)
+         (wgsl-mode . eglot-ensure)
+         (wgsl-ts-mode . eglot-ensure)
          (racket-mode . eglot-ensure)))
 
 ;;; ==================== EXTERNAL PACKAGES ====================
@@ -711,7 +716,8 @@
 (vertico-resize nil)                  ;; Disable resizing of the vertico minibuffer.
 (vertico-cycle nil)                   ;; Do not cycle through candidates when reaching the end of the list.
 :bind (:map vertico-map
-    ("DEL" . vertico-directory-delete-char))
+    ("DEL" . vertico-directory-delete-char)
+    ("C-." . embark-act))
 
 :config
 ;; Customize the display of the current candidate in the completion list.
@@ -1127,12 +1133,8 @@
 
 (use-package flycheck
   :ensure t
-  :config
-  (add-hook 'after-init-hook #'global-flycheck-mode))
-
-(use-package flycheck-eglot
-  :ensure t
-  :after (flycheck eglot)
+  :hook ((after-init . global-flycheck-mode)
+         (after-init . global-flycheck-annotate-mode))
   :config
   (global-flycheck-eglot-mode 1))
 
@@ -1264,6 +1266,12 @@
          ,(make-char 'greek-iso8859-7 107))
          nil))))))
   (add-hook 'racket-mode-hook 'rm-replace-lambda))
+
+(use-package rust-mode
+  :ensure t)
+
+(use-package wgsl-mode
+  :ensure t)
 
 ;;; DOTENV
 ;; A simple major mode to provide .env files with color highlighting
@@ -1618,6 +1626,54 @@
               (when (string-match-p "\\*agent-shell-diff\\*" (buffer-name))
   	            (evil-emacs-state)))))
 
+(use-package org-timegrid
+  :vc (:url "https://github.com/Gleek/org-timegrid.git")
+  :commands (org-timegrid-week)
+  :bind ("C-c c" . org-timegrid-week)
+  :init
+  ;; The symbol `agenda' means: read events from `org-agenda-files'.
+  (setq org-timegrid-org-files 'agenda
+
+        ;; Recommended compact scale; use 1.0 to match Emacs's default font.
+        org-timegrid-default-zoom 0.7
+
+        org-timegrid-org-capture-file
+        (expand-file-name "calendar.org" org-directory)
+        org-timegrid-org-capture-template
+        '(:target file
+                  :template "* %{title}\n%{time-range}\n%?")
+
+        ;; Save Org buffers immediately after edits made in the calendar.
+        org-timegrid-org-auto-save t
+
+        ;; Set this to nil if repeating entries should be hidden.
+        org-timegrid-org-show-repeaters t
+        
+        ;; The first matching tag supplies an event's colour.
+        org-timegrid-org-tag-color-alist
+        '(("work"     . indigo)
+          ("personal" . green)
+          ("reading"  . yellow)
+          ("errand"   . cyan)))
+  :config
+  (require 'org-timegrid-org))
+
+;; This is part of the same package. It adds a read-only day strip to Org
+;; Agenda; pressing RET on the strip opens the editable week view.
+(use-package org-timegrid-agenda
+  :ensure nil
+  :after org-agenda
+  :demand t
+  :init
+  ;; nil inserts the strip at the top. To place it after a particular custom
+  ;; agenda block, use a regexp matching that block's heading instead.
+  (setq org-timegrid-agenda-insert-after nil
+        org-timegrid-agenda-separator t
+        org-timegrid-agenda-minutes-before 180
+        org-timegrid-agenda-minutes-after 180)
+  :config
+  (org-timegrid-agenda-mode 1))
+
 ;; (defvar default-fs (font-spec :name "JetBrainsMono Nerd Font" :size 14.0 :weight 'regular ))
 ;; (defvar nano-mono-fs (font-spec :name "JetBrainsMono Nerd Font" :size 14.0 :weight 'regular  ))
 ;; (defvar nano-mono-alt-fs  (font-spec :name "FiraCode Nerd Font" :size 14.0 :weight 'regular ))
@@ -1765,10 +1821,10 @@
   (evil-define-key 'normal 'global (kbd "<leader> s h") 'consult-info)
   (evil-define-key 'normal 'global (kbd "<leader> /") 'consult-line)
 
-  ;; Flymake navigation
-  (evil-define-key 'normal 'global (kbd "<leader> x x") 'consult-fycheck);; Gives you something like `trouble.nvim'
-  (evil-define-key 'normal 'global (kbd "] d") 'flycheck-goto-next-error) ;; Go to next Flymake error
-  (evil-define-key 'normal 'global (kbd "[ d") 'flycheck-goto-prev-error) ;; Go to previous Flymake error
+  ;; Flycheck navigation
+  (evil-define-key 'normal 'global (kbd "<leader> x x") 'consult-flycheck);; Gives you something like `trouble.nvim'
+  (evil-define-key 'normal 'global (kbd "] d") 'flycheck-goto-next-error) ;; Go to next Flycheck error
+  (evil-define-key 'normal 'global (kbd "[ d") 'flycheck-goto-prev-error) ;; Go to previous Flycheck error
 
   ;; Dired commands for file management
   (evil-define-key 'normal 'global (kbd "<leader> x d") 'dired)
@@ -1948,8 +2004,8 @@
   (evil-define-key 'normal 'global (kbd "M--") 'text-scale-decrease)
   (evil-define-key 'normal 'global (kbd "M-=") 'text-scale-increase)
 
-  (evil-define-key 'normal 'global (kbd "<leader> t") 'my/vterm-toggle)
-  (evil-define-key 'normal 'global (kbd "<leader> T") 'my/vterm-here)
+  (evil-define-key 'normal 'global (kbd "<leader> t") 'my/ghostel-toggle)
+  (evil-define-key 'normal 'global (kbd "<leader> T") 'my/ghostel-here)
 
   (evil-define-key 'normal 'global (kbd "<leader> u m") 'mixed-pitch-mode)
 
@@ -1963,6 +2019,8 @@
   (evil-define-key 'normal 'global (kbd "<leader> u w") 'my/toggle-word-wrap)
 
   (evil-define-key 'normal 'global (kbd "<leader> u b") 'book-mode)
+  
+  (evil-define-key 'normal 'global (kbd "<leader> c") 'agent-shell-anthropic-start-claude-code)
 
   (defun my/find-file-ssh ()
     "Start TRAMP SSH file selection."
@@ -2135,6 +2193,53 @@
   :bind (("C-<tab>" . copilot-complete)
          :map copilot-completion-map
          ("<tab>" . 'copilot-accept-completion)))
+
+(use-package ghostel
+  :ensure t
+  :init
+    (defun my/ghostel-toggle (&optional arg)
+    "Toggle a ghostel popup at project root.
+
+    With prefix ARG, kill and recreate the ghostel buffer."
+    (interactive "P")
+    (let* ((default-directory (my/vterm--project-root))
+            (buffer-name
+            (format "*ghostel-popup:%s*"
+                    (abbreviate-file-name default-directory)))
+            (buffer (get-buffer buffer-name))
+            (window (get-buffer-window buffer-name)))
+        ;; Recreate if requested
+        (when (and arg (buffer-live-p buffer))
+        (when-let (proc (get-buffer-process buffer))
+            (delete-process proc))
+        (kill-buffer buffer)
+        (setq buffer nil
+                window nil))
+
+        ;; Toggle behavior
+        (if (window-live-p window)
+            (delete-window window)
+        (let ((buffer (or buffer (ghostel-create buffer-name))))
+            (pop-to-buffer
+            buffer
+            '((display-buffer-reuse-window
+                display-buffer-in-side-window)
+            (side . bottom)
+            (slot . -1)
+            (window-height . 0.3)))))))
+
+    (defvar my/ghostel-counter 0
+      "Counter to generate unique ghostel buffer names.")
+
+    (defun my/ghostel-here ()
+        "Open a new ghostel buffer in the current window, numbered sequentially."
+        (interactive)
+        ;; Increment counter for unique name
+        (setq my/ghostel-counter (1+ my/ghostel-counter))
+        (let* ((buffer-name (format "*ghostel-%d*" my/ghostel-counter))
+            (buffer (ghostel-create buffer-name)))
+        ;; Switch to it in the current window
+        (switch-to-buffer buffer))))
 
 ;; undecorated-round is set in early-init.el.
 ;; In daemon mode the graphical frame only exists when emacsclient connects,

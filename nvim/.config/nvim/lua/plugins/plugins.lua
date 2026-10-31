@@ -24,7 +24,7 @@ return {
         bufferline = true, -- enables bufferline integration automatically
       },
       float = {
-        transparent = false,
+        transparent = true,
       },
       dim_inactive = {
         enabled = false, -- dims the background color of inactive window
@@ -35,7 +35,7 @@ return {
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "catppuccin",
+      colorscheme = "catppuccin-nvim",
     },
   },
 

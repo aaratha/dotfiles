@@ -68,4 +68,27 @@ shell-integration-features = ssh-terminfo
 
 shell-integration-features = ssh-env
 
+shell-integration = zsh
+
 macos-icon = glass
+
+window-padding-x = 12
+window-padding-y = 0, 12
+window-padding-balance = true
+
+quick-terminal-position = center
+
+window-step-resize = true
+# window-padding-color = extend
+bell-features = border
+
+
+macos-option-as-alt = true
+
+keybind = global:super+grave_accent=toggle_quick_terminal
+keybind = grave_accent>v=new_split:right
+keybind = grave_accent>s=new_split:down
+keybind = grave_accent>h=goto_split:left
+keybind = grave_accent>j=goto_split:down
+keybind = grave_accent>k=goto_split:up
+keybind = grave_accent>l=goto_split:right
